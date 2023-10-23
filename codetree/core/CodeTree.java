@@ -200,7 +200,7 @@ public class CodeTree implements Serializable {
                 continue;
 
             idList.add(g.id);
-            root.search_by_g2(g, impl, g.id, idList, removeIDList);
+            root.pruningEquivalentNodes(g, impl, g.id, idList, removeIDList);
 
         }
     }

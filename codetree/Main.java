@@ -54,15 +54,9 @@ class Main {
                     List<ArrayList<Pair<Integer, Graph>>> Q = new ArrayList<>();
                     final int querysize = 100;
                     final int minedge = 4;
-                    final int maxedge = 4;
+                    final int maxedge = 16;
 
                     List<Graph> G = SdfFileReader.readFile_gfu(Paths.get(gfuFilename));
-                    // List<Graph> G = new ArrayList<Graph>();
-                    // for (int i = 0; i < datasetSize; i++) {
-                    // String filename = String.format("%s/g%d.gfu", dataset, i);
-                    // Graph g = SdfFileReader.readFileQuery_gfu(Paths.get(filename));
-                    // G.add(g);
-                    // }
 
                     for (int numOfEdge = minedge; numOfEdge <= maxedge; numOfEdge *= 2) {
                         ArrayList<Pair<Integer, Graph>> qset = new ArrayList<>();

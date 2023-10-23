@@ -93,6 +93,7 @@ public class AcgmCode
 
             for (AcgmSearchInfo info : infoList1) {
 
+                // for (int v : g.adjList[info.vertexIDs[depth - 1]]) {
                 for (int v = 0; v < n; ++v) {
                     if (info.open.get(v)) {
                         next.add(v);
@@ -172,21 +173,18 @@ public class AcgmCode
 
         AcgmSearchInfo info = (AcgmSearchInfo) info0;
 
-        int n = g.order;
+        // int n = g.order;
 
         final int depth = info.vertexIDs.length;
 
         byte[] eLabels = new byte[depth];
-        for (int v = 0; v < n; ++v) {
+        // for (int v = 0; v < n; ++v) {
 
-            if (childrenVlabel != null) {
-                if (!info.open.get(v) || !childrenVlabel.contains(g.vertices[v])) {// 未探索頂点のみが捜索対象
-                    continue;
-                }
-            } else {
-                if (!info.open.get(v)) {
-                    continue;
-                }
+        for (int v = info.open.nextSetBit(0); v != -1; v = info.open
+                .nextSetBit(++v)) {
+
+            if (!childrenVlabel.contains(g.vertices[v])) {// 未探索頂点のみが捜索対象
+                continue;
             }
 
             for (int i = 0; i < depth; ++i) {

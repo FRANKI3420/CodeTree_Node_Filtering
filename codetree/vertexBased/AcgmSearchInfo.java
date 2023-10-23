@@ -25,8 +25,8 @@ final class AcgmSearchInfo
             open.set(u);
         }
 
-        closed = new BitSet(n);
-        closed.set(v0);
+        // closed = new BitSet(n);
+        // closed.set(v0);
 
         vertexIDs = new int[1];
         vertexIDs[0] = v0;
@@ -38,7 +38,7 @@ final class AcgmSearchInfo
     AcgmSearchInfo(AcgmSearchInfo src, Graph g, Integer v) {
 
         open = (BitSet) src.open.clone();
-        closed = (BitSet) src.closed.clone();
+        // closed = (BitSet) src.closed.clone();
 
         final int n = src.vertexIDs.length;
         vertexIDs = new int[n + 1];
@@ -46,14 +46,27 @@ final class AcgmSearchInfo
         vertexIDs[n] = v;
 
         open.set(v, false);
-        closed.set(v);
+        // closed.set(v);
 
         int[] adj = g.adjList[v];
+        // for (int u : adj) {
+        // if (!closed.get(u)) {
+        // open.set(u);
+        // }
+        // }
         for (int u : adj) {
-            if (!closed.get(u)) {
+            if (contain(vertexIDs, u)) {
                 open.set(u);
             }
         }
+    }
+
+    boolean contain(int[] vertexIDs, int num) {
+        for (int i : vertexIDs) {
+            if (i == num)
+                return false;
+        }
+        return true;
     }
 
     // // no clone

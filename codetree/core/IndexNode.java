@@ -71,6 +71,8 @@ public class IndexNode implements Serializable {
     static int fil_count = 0;
     static int in_count = 0;
     static int a_fil_count = 0;
+    static long induce_search = 0;
+    static long contain_search = 0;
 
     static long a_filterTime = 0;
     static ArrayList<IndexNode> removeNode = new ArrayList<>();
@@ -402,9 +404,15 @@ public class IndexNode implements Serializable {
         for (Pair<IndexNode, SearchInfo> info : infoList) {
             info.left.subsearch(q, info.right, impl);
         }
+        long traverse_time = System.nanoTime();
+        contain_search += traverse_time - start;
+
         for (Pair<IndexNode, SearchInfo> info : infoList) {
             info.left.subsearch_contain(q, info.right, impl);
         }
+
+        induce_search += System.nanoTime() - traverse_time;
+
         infoList = null;
 
         a_fil_count = size - Can.cardinality();
@@ -458,11 +466,13 @@ public class IndexNode implements Serializable {
             System.out.println("\n候補グラフ数" + doukeicount);
             System.out.println("辺を削除できたグラフ数" + removeTotalGraphs);
             System.out.println("削除できた辺数" + removeTotalSize);
+            write_file(allbw, bw, size);
 
             nfg_count = 0;
             removeTotalSize = 0;
             removeTotalGraphs = 0;
-            write_file(allbw, bw, size);
+            contain_search = 0;
+            induce_search = 0;
             init_param();
             // System.out.println(q.size + mode + ":" + (double) query_per_nf_count / 100);
             query_per_nf_count = 0;
@@ -892,14 +902,15 @@ public class IndexNode implements Serializable {
         }
     }
 
-    void search_by_g2(Graph g, GraphCode impl, int leafID, ArrayList<Integer> idList, ArrayList<Integer> removeIDList) {
+    void pruningEquivalentNodes(Graph g, GraphCode impl, int leafID, ArrayList<Integer> idList,
+            ArrayList<Integer> removeIDList) {
         List<Pair<IndexNode, SearchInfo>> infoList = impl.beginSearch(g, this);
         for (Pair<IndexNode, SearchInfo> info : infoList) {
-            info.left.search_by_g2(g, info.right, impl, leafID, idList, removeIDList);
+            info.left.pruningEquivalentNodes(g, info.right, impl, leafID, idList, removeIDList);
         }
     }
 
-    private void search_by_g2(Graph g, SearchInfo info, GraphCode impl, int leafID, ArrayList<Integer> idList,
+    private void pruningEquivalentNodes(Graph g, SearchInfo info, GraphCode impl, int leafID, ArrayList<Integer> idList,
             ArrayList<Integer> removeIDList) {
 
         // this node is leaf and & not needed by index because of same path
@@ -915,7 +926,7 @@ public class IndexNode implements Serializable {
         for (IndexNode m : children) {
             for (Pair<CodeFragment, SearchInfo> frag : nextFrags) {
                 if (frag.left.equals(m.frag)) {
-                    m.search_by_g2(g, frag.right, impl, nodeID, idList, removeIDList);
+                    m.pruningEquivalentNodes(g, frag.right, impl, nodeID, idList, removeIDList);
                 }
             }
         }
@@ -1090,6 +1101,11 @@ public class IndexNode implements Serializable {
             bw.write("(E)読み込み関数時間(ms): " + String.format("%.2f", (double) read_time /
                     1000 / 1000) + "\n");
 
+            bw.write("query_contain_travers_time(ms): " + String.format("%.5f", (double) contain_search / 1000 / 1000)
+                    + "\n");
+            bw.write("query_equal_travers_time(ms): " + String.format("%.5f", (double) induce_search / 1000 / 1000)
+                    + "\n");
+
             bw.write("Number of Filtering Graphs: " + fil_count + "\n");
             bw.write("Number of inclusion Graphs: " + in_count + "\n");
 
@@ -1100,12 +1116,12 @@ public class IndexNode implements Serializable {
             bw.write("FP ratio : " + String.format("%.5f", FP2 / nonfail) + "\n");
             bw.write("inclusion Presison : " + String.format("%.5f", SP) + "%" + "\n");
 
-            bw.write(
-                    "filter_time/filter_num : "
-                            + String.format("%.6f", (((double) search_time / 1000 / 1000) +
-                                    query_per_veqF)
-                                    / (size * nonfail - veq_Can_total))
-                            + "\n");
+            // bw.write(
+            // "filter_time/filter_num : "
+            // + String.format("%.6f", (((double) search_time / 1000 / 1000) +
+            // query_per_veqF)
+            // / (size * nonfail - veq_Can_total))
+            // + "\n");
 
             bw.write("(a)a VEQs Filtering Time (ms): " + String.format("%.6f",
                     query_per_veqF / nonfail) + "\n");
