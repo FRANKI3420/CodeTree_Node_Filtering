@@ -359,23 +359,23 @@ public class IndexNode implements Serializable {
         traverse = true;
 
         List<Pair<IndexNode, SearchInfo>> infoList = impl.beginSearch(q, this);
+        for (Pair<IndexNode, SearchInfo> info : infoList) {
+            info.left.subsearch(q, info.right, impl);
+            if (!traverse)
+                break;
+        }
+        // if (delta <= q.order) {
         // for (Pair<IndexNode, SearchInfo> info : infoList) {
-        // info.left.subsearch(q, info.right, impl);
+        // info.left.subsearch2(q, info.right, impl);
+        // info.left.supersearch(q, info.right, impl);
         // if (!traverse)
         // break;
         // }
-        if (delta <= q.order) {
-            for (Pair<IndexNode, SearchInfo> info : infoList) {
-                info.left.subsearch2(q, info.right, impl);
-                info.left.supersearch(q, info.right, impl);
-                if (!traverse)
-                    break;
-            }
-        } else {
-            for (Pair<IndexNode, SearchInfo> info : infoList) {
-                info.left.subsearch(q, info.right, impl);
-            }
-        }
+        // } else {
+        // for (Pair<IndexNode, SearchInfo> info : infoList) {
+        // info.left.subsearch(q, info.right, impl);
+        // }
+        // }
         result.or(In);
         infoList = null;
 
@@ -714,11 +714,11 @@ public class IndexNode implements Serializable {
     private void subsearch(Graph q, SearchInfo info, GraphCode impl) {
         Can.and(matchGraphIndicesBitSet);
         traverse_num++;
-        // if (depth == q.order) {
-        // In.or(matchGraphIndicesBitSet);
-        // traverse = false;
-        // return;
-        // }
+        if (depth == q.order) {
+            In.or(matchGraphIndicesBitSet);
+            traverse = false;
+            return;
+        }
 
         if (children.size() == 0) {
             return;
@@ -728,8 +728,8 @@ public class IndexNode implements Serializable {
 
         for (IndexNode m : children) {
             for (Pair<CodeFragment, SearchInfo> frag : nextFrags) {
-                // if (m.frag.equals(frag.left)) {
-                if (frag.left.contains(m.frag)) {
+                if (m.frag.equals(frag.left)) {
+                    // if (frag.left.contains(m.frag)) {
                     m.subsearch(q, frag.right, impl);
                     if (!traverse)
                         return;
