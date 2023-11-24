@@ -364,18 +364,6 @@ public class IndexNode implements Serializable {
             if (!traverse)
                 break;
         }
-        // if (delta <= q.order) {
-        // for (Pair<IndexNode, SearchInfo> info : infoList) {
-        // info.left.subsearch2(q, info.right, impl);
-        // info.left.supersearch(q, info.right, impl);
-        // if (!traverse)
-        // break;
-        // }
-        // } else {
-        // for (Pair<IndexNode, SearchInfo> info : infoList) {
-        // info.left.subsearch(q, info.right, impl);
-        // }
-        // }
         result.or(In);
         infoList = null;
 
