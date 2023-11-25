@@ -260,28 +260,20 @@ public class IndexNode implements Serializable {
         traverse = true;
 
         List<Pair<IndexNode, SearchInfo>> infoList = impl.beginSearch(q, this);
-        if (delta >= q.order) {
-            for (Pair<IndexNode, SearchInfo> info : infoList) {
-                info.left.subsearch(q, info.right, impl);
-                info.left.supersearch(q, info.right, impl);
-                // if (!traverse)
-                // break;
-            }
-        } else {
-            for (Pair<IndexNode, SearchInfo> info : infoList) {
-                info.left.subsearch(q, info.right, impl);
-            }
+        for (Pair<IndexNode, SearchInfo> info : infoList) {
+            info.left.subsearch(q, info.right, impl);
+            if (!traverse)
+                break;
         }
         result.or(In);
-        Can.andNot(In);
         // Can.xor(In);
         a_in_count = In.cardinality();
         in_count += a_in_count;
         infoList = null;
 
-        // if (!traverse) {
-        // Can.clear();
-        // }
+        if (!traverse) {
+            Can.clear();
+        }
 
         contains_search += System.nanoTime() - start;
 
@@ -455,19 +447,23 @@ public class IndexNode implements Serializable {
     private void subsearch(Graph q, SearchInfo info, GraphCode impl) {
         Can.and(matchGraphIndicesBitSet);
         traverse_num++;
+
+        if (depth == q.order) {
+            In.or(matchGraphIndicesBitSet);
+            // result.or(matchGraphIndicesBitSet);
+            traverse = false;
+            return;
+        }
+
         if (children.size() == 0) {
             return;
         }
 
         List<Pair<CodeFragment, SearchInfo>> nextFrags = impl.enumerateFollowableFragments(q, info, adjLabels);
-        // List<Pair<CodeFragment, SearchInfo>> nextFrags =
-        // impl.enumerateFollowableFragments(q, info, adjLabels,
-        // childEdgeFrag);
 
         for (IndexNode m : children) {
             for (Pair<CodeFragment, SearchInfo> frag : nextFrags) {
-                // if (m.frag.equals(frag.left)) {
-                if (frag.left.contains(m.frag)) {
+                if (m.frag.equals(frag.left)) {
                     m.subsearch(q, frag.right, impl);
                 }
             }
@@ -807,13 +803,13 @@ public class IndexNode implements Serializable {
                 if (Gsize == result.cardinality()) {
                     FPre = 1;
                 } else {
-                    FPre = (double) (Gsize - Can.cardinality() - a_in_count) /
+                    FPre = (double) (Gsize - Can.cardinality()) /
                             (Gsize - result.cardinality());
                 }
 
-                FPratio_q = (double) (veq_answer_num) / (Can.cardinality());
+                FPratio_q = (double) (result.cardinality()) / (Can.cardinality());
 
-                SPper_q = (double) In.cardinality() / (result.cardinality());
+                SPper_q = 0;
 
                 if (Gsize - veq_per_Can != 0) {
                     filpertime = (Gsize - veq_per_Can) / (((double) a_filterTime / 1000 / 1000) +
