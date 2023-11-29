@@ -170,6 +170,55 @@ public class AcgmCode
         return code;
     }
 
+    @Override
+    public List<CodeFragment> computeCanonicalCode_nec(Graph g, int start, int limDepth,
+            ArrayList<Integer> vertexIDs) {
+        final int n = g.order();
+        ArrayList<CodeFragment> code = new ArrayList<>(n);
+        ArrayList<AcgmSearchInfo> infoList1 = new ArrayList<>();
+
+        code.add(new AcgmCodeFragment(g.vertices[start], 0));
+        vertexIDs.add(start);
+
+        infoList1.add(new AcgmSearchInfo(g, start));
+
+        Random rand = new Random(0);
+
+        for (int depth = 1; depth < limDepth; ++depth) {
+            byte[] eLabels = new byte[depth];
+            ArrayList<Integer> next = new ArrayList<>();
+
+            for (AcgmSearchInfo info : infoList1) {
+
+                for (int v = 0; v < n; ++v) {
+                    if (info.open.get(v)) {
+                        next.add(v);
+                    }
+                }
+                if (next.size() == 0) {
+                    return code;
+
+                }
+
+                int random = rand.nextInt(next.size());
+                int v2 = next.get(random);
+
+                for (int i = 0; i < depth; ++i) {
+                    final int u = info.vertexIDs[i];
+                    eLabels[i] = g.edges[u][v2];
+                }
+
+                AcgmCodeFragment frag = new AcgmCodeFragment(g.vertices[v2], eLabels);
+                infoList1.clear();
+                infoList1.add(new AcgmSearchInfo(info, g, v2));
+                code.add(frag);
+                vertexIDs.add(v2);
+
+            }
+        }
+        return code;
+    }
+
     @Override // 最初の探索候補となる頂点を全出力
     public List<Pair<IndexNode, SearchInfo>> beginSearch(Graph g, IndexNode root) {
         ArrayList<Pair<IndexNode, SearchInfo>> infoList = new ArrayList<>();

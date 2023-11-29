@@ -23,6 +23,8 @@ public class Graph implements Serializable {
 
     public HashMap<Integer, BitSet> edgeBitset;
 
+    public HashMap<Integer, Integer> necMap;
+
     public Graph(int id, byte[] vertices, byte[][] edges) {
         this.id = id;
         this.vertices = vertices;
@@ -36,6 +38,23 @@ public class Graph implements Serializable {
         filterFlag = new BitSet();
 
         edgeBitset = this.getEdgeBitset(adjList);
+    }
+
+    public Graph(int id, byte[] vertices, byte[][] edges, HashMap<Integer, Integer> necMap1) {
+        this.id = id;
+        this.vertices = vertices;
+        this.edges = edges;
+
+        this.order = this.order();
+        this.size = this.size();
+
+        adjList = makeAdjList();
+
+        filterFlag = new BitSet();
+
+        edgeBitset = this.getEdgeBitset(adjList);
+
+        necMap = necMap1;
     }
 
     private HashMap<Integer, BitSet> getEdgeBitset(int[][] adjList) {
@@ -158,6 +177,57 @@ public class Graph implements Serializable {
         }
 
         return labels;
+    }
+
+    public Graph shirinkNEC() {
+
+        int newOrder = 0;
+        int[] map = new int[order()];
+        HashSet<Integer> remove = new HashSet<>();
+        HashMap<Integer, Integer> necMap1 = new HashMap<>();
+        HashMap<Integer, Integer> copyNecMap = new HashMap<>();
+
+        for (int v = 0; v < this.order; ++v) {
+            if (this.adjList[v].length == 0) {// 独立点の削除
+                remove.add(v);
+                continue;
+            }
+
+            if (this.adjList[v].length > 1 || remove.contains(v))
+                continue;
+
+            int adj = this.adjList[v][0];// 親の頂点
+            int removeCou = 0;
+
+            for (int u : this.adjList[adj]) {
+                if (this.adjList[u].length > 1 || u == v || vertices[u] != vertices[v])
+                    continue;
+                removeCou++;
+                remove.add(u);
+            }
+            if (removeCou == 0)
+                continue;
+            copyNecMap.put(v, removeCou);
+        }
+
+        for (int v = 0; v < this.order; v++) {
+            if (!remove.contains(v)) {
+                map[newOrder++] = v;
+                if (copyNecMap.get(v) == null)
+                    continue;
+                necMap1.put(newOrder, copyNecMap.get(v));
+            }
+        }
+        byte[] vertices = new byte[newOrder];
+        byte[][] edges = new byte[newOrder][newOrder];
+
+        for (int v = 0; v < newOrder; ++v) {
+            vertices[v] = this.vertices[map[v]];
+            for (int u = 0; u < newOrder; ++u) {
+                edges[v][u] = this.edges[map[v]][map[u]];
+            }
+        }
+        return new Graph(id, vertices, edges, necMap1);
     }
 
     public Graph shrink() {

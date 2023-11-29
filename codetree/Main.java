@@ -43,9 +43,9 @@ class Main {
             br_whole.write(
                     "dataset,query_set,FP_ratio,G-C/G-A,SP,filtering_time(ms),verification_time(ms),query_time(ms),tree1_search_time(ms),tree2_search_time(ms),edge_fil_time(ms),node_fil_time(ms),|In(Q)|,|A(Q)|,|Can(Q)|,Filtering Graphs,Node Filteirng Graphs,Label Filteirng Graphs,Num deleted Vertices,Num Deleted Edges,total deleted edges Num,codetree_filtime/fil_num,codetree_fil_num,allfil_num/allfil_time,allfil_num,nonfail,verify num\n");
 
-            for (datasetID = 0; datasetID <= 6; datasetID++) {
+            for (datasetID = 0; datasetID <= 0; datasetID++) {
 
-                boolean nec = false;
+                boolean nec = true;
                 if (datasetID < 0 || datasetID > 6) {
                     System.out.println("無効なデータセットIDです");
                     System.exit(0);
@@ -227,6 +227,103 @@ class Main {
                                     bw.write("*********************************\n");
                                 }
                                 // }
+                            } else {
+
+                                System.out.println("tree1");
+                                CodeTree_nec tree = new CodeTree_nec(graphCode, G, bw, dataset, allfind);
+
+                                bw.write("Build tree(ms): "
+                                        + String.format("%.6f", (double) (System.nanoTime() - start) / 1000 / 1000)
+                                        +
+                                        "\n");
+                                allfind.write(","
+                                        + String.format("%.6f", (double) (System.nanoTime() - start) / 1000 / 1000)
+                                        + "\n");
+
+                                // if (true)
+                                // continue;
+
+                                HashMap<Integer, ArrayList<String>> gMaps = makeGmaps(gfuFilename);
+
+                                int index = minedge;
+                                String mode = null;
+                                String data_out = null;
+                                int[] adjust = new int[Q.size() / 2];
+                                int count = 0;
+                                int count2 = 0;
+
+                                for (ArrayList<Pair<Integer, Graph>> Q_set : Q) {
+
+                                    if ((datasetID == 3 && index == 64) || (datasetID == 6 && index == 32)
+                                            || (datasetID == 6 && index == 64)) {
+                                        index *= 2;
+                                        continue;
+                                    }
+
+                                    // if ((datasetID == 3 && index >= 32) || (datasetID == 6 && index >= 32)
+                                    // || index >= 128) {
+                                    // index *= 2;
+                                    // continue;
+                                    // }
+                                    // if ((datasetID == 6 && index >= 32)) {
+                                    // index *= 2;
+                                    // continue;
+                                    // }
+
+                                    if (index <= maxedge) {
+                                        adjust[count++] = index;
+                                        System.out.println("\nQ" + index + "R");
+                                        bw.write("Q" + index + "R\n");
+                                        bw2.write("Q" + index + "R\n");
+                                        allbw.write(dataset + ",Q" + index + "R,");
+                                        br_whole.write(dataset + ",Q" + index + "R,");
+                                        data_out = String.format("result/%s_%dR_data.csv", dataset,
+                                                index);
+                                        mode = "randomwalk";
+                                    } else {
+                                        int size = adjust[count2++];
+
+                                        System.out.println("\nQ" + size + "B");
+                                        bw.write("Q" + size + "B\n");
+                                        bw2.write("Q" + size + "B\n");
+                                        allbw.write(dataset + ",Q" + size + "B,");
+                                        br_whole.write(dataset + ",Q" + size + "B,");
+                                        data_out = String.format("result/%s_%dB_data.csv", dataset,
+                                                size);
+                                        mode = "bfs";
+                                    }
+
+                                    try (BufferedWriter bwout = new BufferedWriter(
+                                            new OutputStreamWriter(new FileOutputStream(data_out), "UTF-8"));) {
+
+                                        start = System.nanoTime();
+
+                                        for (Pair<Integer, Graph> q : Q_set) {
+                                            if (q.left == 0) {
+                                                System.out.print("");
+                                            } else if (q.left % 50 == 0) {
+                                                System.out.print("*");
+                                            } else if (q.left % 10 == 0) {
+                                                System.out.print(".");
+                                            }
+                                            BitSet result = tree.subgraphSearch(q.right, bw, datasetSize, mode,
+                                                    dataset,
+                                                    bwout, allbw, G, q.right.size, gMaps, br_whole);
+
+                                            bw2.write(
+                                                    q.left.toString() + " " + result.cardinality() + "個"
+                                                            + result.toString()
+                                                            + "\n");
+                                        }
+                                        final long time = System.nanoTime() - start;
+                                        bw.write("(A)*100+(C)+(D)+(E)+(α) 合計処理時間(ms): " + (time / 1000 / 1000) +
+                                                "\n");
+                                        index *= 2;
+                                        Q_set = null;
+                                    }
+                                    bw.write("*********************************\n");
+                                }
+
                             }
                         }
 
