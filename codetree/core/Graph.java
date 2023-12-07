@@ -22,6 +22,7 @@ public class Graph implements Serializable {
     public BitSet filterFlag;
 
     public HashMap<Integer, BitSet> edgeBitset;
+    public HashMap<Integer, int[]> profile;
 
     public Graph(int id, byte[] vertices, byte[][] edges) {
         this.id = id;
@@ -30,12 +31,11 @@ public class Graph implements Serializable {
 
         this.order = this.order();
         this.size = this.size();
-
         adjList = makeAdjList();
-
         filterFlag = new BitSet();
-
         edgeBitset = this.getEdgeBitset(adjList);
+
+        profile = new HashMap<>();
     }
 
     private HashMap<Integer, BitSet> getEdgeBitset(int[][] adjList) {
@@ -525,6 +525,18 @@ public class Graph implements Serializable {
         }
 
         return labelMap;
+    }
+
+    public HashMap<Integer, int[]> calculateProfile(int sigma) {
+        HashMap<Integer, int[]> profileMap = new HashMap<>();
+        for (int v = 0; v < order; v++) {
+            int[] labels = new int[sigma];
+            for (int u : adjList[v]) {
+                labels[vertices[u]]++;
+            }
+            profileMap.put(v, labels);
+        }
+        return profileMap;
     }
 }
 

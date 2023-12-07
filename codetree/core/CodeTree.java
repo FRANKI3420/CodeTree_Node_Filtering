@@ -28,7 +28,9 @@ public class CodeTree implements Serializable {
 
         long time = System.nanoTime();
 
-        List<ArrayList<CodeFragment>> codelist = impl.computeCanonicalCode(Graph.numOflabels(G));
+        int sigma = Graph.numOflabels(G);
+
+        List<ArrayList<CodeFragment>> codelist = impl.computeCanonicalCode(sigma);
         for (ArrayList<CodeFragment> c : codelist) {
             root.addPath(c, -1, false);
         }
@@ -124,7 +126,7 @@ public class CodeTree implements Serializable {
 
         start = System.nanoTime();
         System.out.println("グラフIDの計算中");
-        inclusionCheck(impl, G);
+        inclusionCheck(impl, G, sigma);
         bw.write("addIDtoTree(ms): " + String.format("%.3f", (double) (System.nanoTime() - start) / 1000 / 1000)
                 + "\n");
         System.out.println("\naddIDtoTree: " + (System.nanoTime() - start) / 1000 /
@@ -170,10 +172,11 @@ public class CodeTree implements Serializable {
         System.out.println("Tree size: " + root.size());
     }
 
-    private void inclusionCheck(GraphCode impl, List<Graph> G) {
+    private void inclusionCheck(GraphCode impl, List<Graph> G, int sigma) {
         // root.addDescendantsLabels();
         for (Graph g : G) {
             // g = g.shirinkNEC();
+            g.profile = g.calculateProfile(sigma);
             if (g.id % 100000 == 0) {
                 // System.out.println();
             } else if (g.id % (G.size() / 2) == 0) {
@@ -181,9 +184,10 @@ public class CodeTree implements Serializable {
             } else if (g.id % (G.size() / 10) == 0) {
                 System.out.print(".");
             }
-            BitSet gLabels = g.labels_Set();
+            // BitSet gLabels = g.labels_Set();
             // root.addIDtoTree(g, impl, g.id);
-            root.addIDtoTree(g, impl, g.id, gLabels);
+            // root.addIDtoTree(g, impl, g.id, gLabels);
+            root.addIDtoTree(g, impl, g.id, sigma);
 
         }
     }

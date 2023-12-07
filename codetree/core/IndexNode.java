@@ -24,6 +24,7 @@ public class IndexNode implements Serializable {
     protected int traverse_num = 0;
     protected LinkedHashMap<Integer, BitSet> labelFiltering;
     protected BitSet childEdgeFrag;
+    protected ArrayList<Integer> qvisitedNodes;
 
     static BitSet In = new BitSet();
     static BitSet Can = new BitSet();
@@ -110,6 +111,7 @@ public class IndexNode implements Serializable {
         traverse_num = 0;
         labelFiltering = new LinkedHashMap<>();
         childEdgeFrag = new BitSet();
+        qvisitedNodes = new ArrayList<>();
     }
 
     int size() {
@@ -205,7 +207,6 @@ public class IndexNode implements Serializable {
                             .nextSetBit(++trueIndex)) {
                         BitSet labelFrag = m.labelFiltering.get(trueIndex);
                         if (labelFrag != null) {
-                            // Graph g = G.get(trueIndex);
                             G.get(trueIndex).filterFlag.or(labelFrag);
                             deletedVsumPerq += labelFrag.cardinality();
                             query_per_nf_count += labelFrag.cardinality();
@@ -220,7 +221,6 @@ public class IndexNode implements Serializable {
                     for (int trueIndex : m.labelFiltering.keySet()) {
                         if (Can.get(trueIndex)) {
                             BitSet labelFrag = m.labelFiltering.get(trueIndex);
-                            // Graph g = G.get(trueIndex);
                             G.get(trueIndex).filterFlag.or(labelFrag);
                             deletedVsumPerq += labelFrag.cardinality();
                             query_per_nf_count += labelFrag.cardinality();
@@ -233,8 +233,45 @@ public class IndexNode implements Serializable {
                     }
                 }
 
+            } else {
+                int mapsize = m.labelFiltering.size();
+                int cansize = Can.cardinality();
+                if (cansize <= mapsize) {
+                    for (int trueIndex = Can.nextSetBit(0); trueIndex != -1; trueIndex = Can
+                            .nextSetBit(++trueIndex)) {
+                        BitSet labelFrag = m.labelFiltering.get(trueIndex);
+                        if (labelFrag != null) {
+                            Graph g = G.get(trueIndex);
+                            for (int falseIndex = labelFrag.nextSetBit(0); falseIndex != -1; falseIndex = labelFrag
+                                    .nextSetBit(++falseIndex)) {
+                                if (compareProfile(g.profile.get(falseIndex), 0)) {
+                                    g.filterFlag.set(falseIndex);
+                                }
+                            }
+                        }
+                    }
+
+                } else {
+                    for (int trueIndex : m.labelFiltering.keySet()) {
+                        if (Can.get(trueIndex)) {
+                            BitSet labelFrag = m.labelFiltering.get(trueIndex);
+                            Graph g = G.get(trueIndex);
+                            for (int falseIndex = labelFrag.nextSetBit(0); falseIndex != -1; falseIndex = labelFrag
+                                    .nextSetBit(++falseIndex)) {
+                                if (compareProfile(g.profile.get(falseIndex), 0)) {
+                                    g.filterFlag.set(falseIndex);
+                                }
+                            }
+                        }
+                    }
+                }
+                m.qvisitedNodes.clear();
             }
         }
+    }
+
+    private boolean compareProfile(int[] is, int i) {
+        return false;
     }
 
     static int labelNumFiltering = 0;
@@ -462,6 +499,9 @@ public class IndexNode implements Serializable {
         boolean nowFrag = superFrag;
         q_trav_num++;
         traverse_num++;
+        if (depth == 1) {
+            qvisitedNodes.add(info.getVertexIDs()[0]);
+        }
         if (!superFrag)
             Can.and(matchGraphIndicesBitSet);
         if (depth == q.order) {
@@ -625,15 +665,18 @@ public class IndexNode implements Serializable {
 
     static int traverse_cou = 0;
 
-    void addIDtoTree(Graph g, GraphCode impl, int id, BitSet gLabels) {
+    // void addIDtoTree(Graph g, GraphCode impl, int id, BitSet gLabels) {
+    void addIDtoTree(Graph g, GraphCode impl, int id, int sigma) {
         matchGraphIndicesBitSet.set(id, true);
         List<Pair<IndexNode, SearchInfo>> infoList = impl.beginSearch(g, this);
         for (Pair<IndexNode, SearchInfo> info : infoList) {
-            info.left.addIDtoTree(g, info.right, impl, id, gLabels);
+            info.left.addIDtoTree(g, info.right, impl, id, sigma);
         }
     }
 
-    private void addIDtoTree(Graph g, SearchInfo info, GraphCode impl, int id, BitSet gLabels) {
+    // private void addIDtoTree(Graph g, SearchInfo info, GraphCode impl, int id,
+    // BitSet gLabels) {
+    private void addIDtoTree(Graph g, SearchInfo info, GraphCode impl, int id, int sigma) {
         // traverse_cou++;
         matchGraphIndicesBitSet.set(id, true);
         if (depth == 1) {
@@ -641,6 +684,15 @@ public class IndexNode implements Serializable {
                 labelFiltering.put(id, new BitSet(g.order));
             }
             labelFiltering.get(id).set(info.getVertexIDs()[0]);
+
+            // if (profile.get(id) == null) {
+
+            // profile.put(id, new Pair<Integer, int[]>(info.getVertexIDs()[0], new
+            // int[sigma]));
+            // }
+            // for (int l : g.adjList[info.getVertexIDs()[0]]) {
+            // profile.get(id)[g.vertices[l]]++;
+            // }
         }
 
         if (children.size() == 0) {
@@ -662,7 +714,7 @@ public class IndexNode implements Serializable {
         for (IndexNode m : children) {
             for (Pair<CodeFragment, SearchInfo> frag : nextFrags) {
                 if (frag.left.contains(m.frag)) {
-                    m.addIDtoTree(g, frag.right, impl, g.id, gLabels);
+                    m.addIDtoTree(g, frag.right, impl, g.id, sigma);
                 }
             }
         }

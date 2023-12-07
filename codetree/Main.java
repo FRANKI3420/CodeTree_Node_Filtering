@@ -138,12 +138,12 @@ class Main {
                                 int index = minedge;
                                 String mode = null;
                                 String data_out = null;
-                                int[] adjust = new int[Q.size() / 2];
+                                int[] adjust = new int[Q.size()];
                                 int count = 0;
                                 int count2 = 0;
 
                                 for (ArrayList<Pair<Integer, Graph>> Q_set : Q) {
-
+                                    adjust[count++] = index;
                                     // if (index <= maxedge) {
                                     // index *= 2;
                                     // continue;
@@ -174,7 +174,6 @@ class Main {
                                     // }
 
                                     if (index <= maxedge) {
-                                        adjust[count++] = index;
                                         System.out.println("\nQ" + index + "R");
                                         bw.write("Q" + index + "R\n");
                                         bw2.write("Q" + index + "R\n");
