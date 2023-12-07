@@ -252,7 +252,9 @@ public class IndexNode implements Serializable {
         long start = System.nanoTime();
 
         // HashMap<Byte, Integer> qLabelMap = q.getLabelMap();
+        // if (q.size == 64) {
         // System.out.println(qLabelMap.toString());
+        // }
 
         init_Bitset();
         root = this;
@@ -723,6 +725,7 @@ public class IndexNode implements Serializable {
         for (IndexNode m : children) {
             for (Pair<CodeFragment, SearchInfo> frag : nextFrags) {
                 if (frag.left.equals(m.frag)) {
+                    // if (frag.left.contains(m.frag)) {
                     m.pruningEquivalentNodes(g, frag.right, impl, nodeID, idList, removeIDList);
                 }
             }

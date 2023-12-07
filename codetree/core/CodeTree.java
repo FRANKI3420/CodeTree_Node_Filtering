@@ -14,8 +14,6 @@ public class CodeTree implements Serializable {
     public static int delta;
     Random rand;
 
-    static int seed = 22;
-
     public CodeTree(GraphCode impl, List<Graph> G, BufferedWriter bw, String dataset,
             BufferedWriter index) throws IOException {
 
@@ -32,6 +30,8 @@ public class CodeTree implements Serializable {
         for (ArrayList<CodeFragment> c : codelist) {
             root.addPath(c, -1, false);
         }
+
+        int loop = 1;
 
         switch (dataset) {
             case "AIDS":
@@ -58,6 +58,7 @@ public class CodeTree implements Serializable {
 
             case "pcms":
                 limDepth = 5;
+                loop = 1;
                 break;
 
             case "ppigo":
@@ -69,21 +70,26 @@ public class CodeTree implements Serializable {
         }
 
         delta = limDepth;
-        int loop = 1;
+        double patternDegree = 0;
         for (Graph g : G) {
             for (int l = 0; l < loop; l++) {
                 int start_vertice = rand.nextInt(g.order);
+                // int start_vertice = -1;
+                // int vLabel = 0;
+                // while (start_vertice == -1) {
+                // List<Integer> maxvList = g.getVertexList(vLabel);
+                // if (maxvList.size() > 0) {
+                // start_vertice = g.getVertexList(vLabel).get(0);
+                // } else {
+                // vLabel++;
+                // }
+                // }
                 code = impl.computeCanonicalCode(g, start_vertice, limDepth);
+                patternDegree += codeFromDegree(code);
                 root.addPath(code, g.id, false);
             }
         }
-
-        // for (Graph g : G) {
-        // ArrayList<Integer> vertexIDs = new ArrayList<>();
-        // int start_vertice = rand.nextInt(g.order);
-        // code = impl.computeCanonicalCode_nec(g, start_vertice, limDepth, vertexIDs);
-        // root.addPath_nec(code, g, vertexIDs);
-        // }
+        System.out.println("p degree: " + patternDegree / G.size());
 
         index.write(dataset + "," + limDepth + ","
                 + String.format("%.6f", (double) (System.nanoTime() - time) / 1000 / 1000) +
@@ -144,6 +150,17 @@ public class CodeTree implements Serializable {
         // } catch (IOException e) {
         // e.printStackTrace();
         // }
+    }
+
+    private double codeFromDegree(List<CodeFragment> code) {
+        double degree = 0;
+        for (CodeFragment c : code) {
+            for (byte b : c.getelabel()) {
+                if (b == 1)
+                    degree++;
+            }
+        }
+        return degree * 2 / code.size();
     }
 
     public CodeTree(GraphCode impl, List<Graph> G, int b) {
