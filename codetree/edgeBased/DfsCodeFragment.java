@@ -62,18 +62,28 @@ class DfsCodeFragment
     }
 
     @Override
-    public boolean contains1(CodeFragment other0) {
-        return false;
-    }
-
-    @Override
     public byte getVlabel() {
-        return 0;
+        return vLabel;
     }
 
     @Override
     public byte[] getelabel() {
+        return null;
+    }
+
+    public int getParent() {
+        return parent;
+    }
+
+    @Override
+    public boolean bigger(CodeFragment other) {
         // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getelabel'");
+        throw new UnsupportedOperationException("Unimplemented method 'bigger'");
+    }
+
+    @Override
+    public boolean contains_adj(CodeFragment other) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'contains_adj'");
     }
 }

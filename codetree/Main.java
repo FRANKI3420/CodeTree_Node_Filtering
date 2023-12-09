@@ -18,7 +18,7 @@ class Main {
     private static String q_gfuFilename;
     private static String dataset;
     private static GraphCode graphCode;
-    private static int graphCodeID = 1;
+    private static int graphCodeID;
     private static int searchID = 1;
     private static int datasetID = 0;
     private static int datasetSize = 0;
@@ -51,6 +51,7 @@ class Main {
                     System.exit(0);
                 }
 
+                graphCodeID = 3;
                 parseArgs(args);
 
                 if (searchID == 1) {
@@ -314,8 +315,8 @@ class Main {
             }
         }
 
-        if (searchID == 1)
-            graphCodeID = 1;
+        // if (searchID == 1)
+        // graphCodeID = 1;
 
         if (graphCodeID == 1) {
             graphCode = new AcgmCode();

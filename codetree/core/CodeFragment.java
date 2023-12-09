@@ -5,6 +5,8 @@ public interface CodeFragment {
 
     public abstract byte[] getelabel();
 
+    public abstract int getParent();
+
     public abstract boolean contains(CodeFragment other);
 
     public abstract boolean bigger(CodeFragment other);

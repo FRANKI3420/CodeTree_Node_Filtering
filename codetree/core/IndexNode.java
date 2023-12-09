@@ -91,6 +91,10 @@ public class IndexNode implements Serializable {
     static int lab_fil_num = 0;
     static int verfyNum = 0;
     static boolean traverse;
+    static int q_trav_num = 0;
+    static int labelNumFiltering = 0;
+    static int a_labelNumFiltering = 0;
+    static int labelFiltering_time = 0;
 
     static ArrayList<IndexNode> removeNode = new ArrayList<>();
 
@@ -237,11 +241,6 @@ public class IndexNode implements Serializable {
         }
     }
 
-    static int labelNumFiltering = 0;
-    static int a_labelNumFiltering = 0;
-
-    static int labelFiltering_time = 0;
-
     BitSet subsearch(Graph q, GraphCode impl, int Gsize, BufferedWriter bw, String mode, String dataset,
             BufferedWriter bw_data, BufferedWriter allbw, List<Graph> G,
             String directory, int qsize, HashMap<Integer, ArrayList<String>> gMaps, int delta, BufferedWriter br_whole)
@@ -249,10 +248,6 @@ public class IndexNode implements Serializable {
 
         // if (q.id == 0)
         // System.out.println("\n辿った節点数" + traverse_cou);
-
-        // if (q.id != 67 || mode != "bfs" || q.size != 32) {
-        // return new BitSet();
-        // }
 
         long start = System.nanoTime();
 
@@ -435,28 +430,6 @@ public class IndexNode implements Serializable {
         }
         write_time += System.nanoTime() - time;
     }
-
-    private void write_file_for_Ver(HashMap<Integer, ArrayList<String>> gMaps) {
-        long time = System.nanoTime();
-        try (BufferedWriter bw2 = Files.newBufferedWriter(out)) {
-
-            for (int trueIndex = Can.nextSetBit(0); trueIndex != -1; trueIndex = Can
-                    .nextSetBit(++trueIndex)) {
-
-                can.add(trueIndex);
-                for (String line : gMaps.get(trueIndex)) {
-                    bw2.write(line + "\n");
-                }
-            }
-
-            bw2.close();
-        } catch (IOException e) {
-            System.exit(1);
-        }
-        write_time += System.nanoTime() - time;
-    }
-
-    static int q_trav_num = 0;
 
     private void doublesearch(Graph q, SearchInfo info, GraphCode impl, boolean superFrag) {
         boolean nowFrag = superFrag;
@@ -656,8 +629,6 @@ public class IndexNode implements Serializable {
 
         List<Pair<CodeFragment, SearchInfo>> nextFrags = impl.enumerateFollowableFragments(g, info, adjLabels,
                 childEdgeFrag);
-        // List<Pair<CodeFragment, SearchInfo>> nextFrags =
-        // impl.enumerateFollowableFragments(g, info, adjLabels);
 
         for (IndexNode m : children) {
             for (Pair<CodeFragment, SearchInfo> frag : nextFrags) {
@@ -696,14 +667,14 @@ public class IndexNode implements Serializable {
         return true;
     }
 
-    void getLeafGraph(List<Graph> leafGraphs) {
+    void getLeafGraph(GraphCode impl, List<Graph> leafGraphs) {
         for (IndexNode m : children) {
             if (m.children.size() == 0) {
                 List<CodeFragment> code = m.getCode();
-                Graph g = generateGraph(code, m.nodeID);
+                Graph g = impl.generateGraph(code, m.nodeID);
                 leafGraphs.add(g);
             } else {
-                m.getLeafGraph(leafGraphs);
+                m.getLeafGraph(impl, leafGraphs);
             }
         }
     }
@@ -716,32 +687,6 @@ public class IndexNode implements Serializable {
         Collections.reverse(code);
         code.remove(0);
         return code;
-    }
-
-    Graph generateGraph(List<CodeFragment> code, int id) {
-        byte[] vertices = new byte[code.size()];
-        byte[][] edges = new byte[code.size()][code.size()];
-        int index = 0;
-        for (CodeFragment c : code) {
-            vertices[index] = c.getVlabel();
-            byte eLabels[] = c.getelabel();
-            if (eLabels == null) {
-                if (index < code.size() - 1) {
-                    edges[index][index + 1] = 1;
-                    edges[index + 1][index] = 1;
-                }
-            } else {
-
-                for (int i = 0; i < eLabels.length; i++) {
-                    if (eLabels[i] == 1) {
-                        edges[index][i] = 1;
-                        edges[i][index] = 1;
-                    }
-                }
-            }
-            index++;
-        }
-        return new Graph(id, vertices, edges);
     }
 
     void removeTree() {

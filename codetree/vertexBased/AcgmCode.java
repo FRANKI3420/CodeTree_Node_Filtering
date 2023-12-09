@@ -111,7 +111,6 @@ public class AcgmCode
                 }
                 if (next.size() == 0) {
                     return code;
-
                 }
 
                 int random = rand.nextInt(next.size());
@@ -319,5 +318,33 @@ public class AcgmCode
         }
         // time += System.nanoTime() - t;
         return false;
+    }
+
+    @Override
+    public Graph generateGraph(List<CodeFragment> code, int nodeID) {
+        byte[] vertices = new byte[code.size()];
+        byte[][] edges = new byte[code.size()][code.size()];
+        int index = 0;
+        for (CodeFragment c : code) {
+            vertices[index] = c.getVlabel();
+            byte eLabels[] = c.getelabel();
+            if (eLabels == null) {
+                if (index < code.size() - 1) {
+                    edges[index][index + 1] = 1;
+                    edges[index + 1][index] = 1;
+                }
+            } else {
+
+                for (int i = 0; i < eLabels.length; i++) {
+                    if (eLabels[i] == 1) {
+                        edges[index][i] = 1;
+                        edges[i][index] = 1;
+                    }
+                }
+            }
+            index++;
+        }
+        return new Graph(nodeID, vertices, edges);
+
     }
 }

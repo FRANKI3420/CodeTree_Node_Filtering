@@ -8,13 +8,13 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.*;
 
+import codetree.vertexBased.AcgmCode;
+
 public class CodeTree implements Serializable {
     GraphCode impl;
     public IndexNode root;
     public static int delta;
     Random rand;
-
-    static int seed = 22;
 
     public CodeTree(GraphCode impl, List<Graph> G, BufferedWriter bw, String dataset,
             BufferedWriter index) throws IOException {
@@ -62,9 +62,6 @@ public class CodeTree implements Serializable {
 
             case "ppigo":
                 limDepth = 7;
-                // rand = new Random(16);
-                // System.out.println(seed);
-                // rand = new Random(seed++);
                 break;
         }
 
@@ -74,17 +71,10 @@ public class CodeTree implements Serializable {
             for (int l = 0; l < loop; l++) {
                 int start_vertice = rand.nextInt(g.order);
                 code = impl.computeCanonicalCode(g, start_vertice, limDepth);
+                // System.out.println(code.toString());
                 root.addPath(code, g.id, false);
             }
         }
-
-        // for (Graph g : G) {
-        // ArrayList<Integer> vertexIDs = new ArrayList<>();
-        // int start_vertice = rand.nextInt(g.order);
-        // code = impl.computeCanonicalCode_nec(g, start_vertice, limDepth, vertexIDs);
-        // root.addPath_nec(code, g, vertexIDs);
-        // }
-
         index.write(dataset + "," + limDepth + ","
                 + String.format("%.6f", (double) (System.nanoTime() - time) / 1000 / 1000) +
                 ",");
@@ -106,7 +96,7 @@ public class CodeTree implements Serializable {
         index.write(treesize + ",");
 
         List<Graph> leafGraphs = new ArrayList<>();
-        root.getLeafGraph(leafGraphs);
+        root.getLeafGraph(impl, leafGraphs);
         inclusionCheck2(impl, leafGraphs);
         root.removeTree();
         treesize = root.size();
@@ -120,7 +110,9 @@ public class CodeTree implements Serializable {
         System.out.println(
                 "remove node time :" + String.format("%.6f", (double) (System.nanoTime() - time) / 1000 / 1000));
 
-        root.addInfo();
+        if (impl == new AcgmCode()) {
+            root.addInfo();
+        }
 
         start = System.nanoTime();
         System.out.println("グラフIDの計算中");
