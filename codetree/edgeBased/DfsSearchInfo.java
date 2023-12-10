@@ -9,7 +9,7 @@ class DfsSearchInfo
     Stack<Integer> rightmostPath;
 
     boolean[][] closed;
-
+    HashMap<Integer, BitSet> closedBitset;
     int numVertices;// 探索された頂点数
     int[] map;
 
@@ -23,6 +23,12 @@ class DfsSearchInfo
         closed = new boolean[n][n];
         closed[v0][v0] = true;
 
+        closedBitset = new HashMap<>();
+        for (int i = 0; i < n; i++) {
+            closedBitset.put(i, new BitSet(n));
+        }
+        closedBitset.get(v0).set(v0);
+
         numVertices = 1;
         map = new int[n];
     }
@@ -35,14 +41,22 @@ class DfsSearchInfo
 
         rightmostPath = (Stack<Integer>) src.rightmostPath.clone();
 
-        closed = cloneMatrix(src.closed);
-        closed[v][u] = true;
-        closed[u][v] = true;
-        closed[v][v] = true;
-        closed[u][u] = true;
+        // closed = cloneMatrix(src.closed);
+        // closed[v][u] = true;
+        // closed[u][v] = true;
+        // closed[v][v] = true;
+        // closed[u][u] = true;
+
+        closedBitset = cloneMatrix(src.closedBitset);
+        closedBitset.get(v).set(u);
+        // closedBitset.put(u, new BitSet());
+        closedBitset.get(u).set(v);
+        closedBitset.get(v).set(v);
+        closedBitset.get(u).set(u);
 
         map = src.map.clone();
-        if (src.closed[u][u]) { // backward edge
+        // if (src.closed[u][u]) { // backward edge
+        if (src.closedBitset.get(u).get(u)) { // backward edge
             numVertices = src.numVertices;
         } else { // forward edge
             rightmostPath.push(u);
@@ -50,6 +64,16 @@ class DfsSearchInfo
             numVertices = src.numVertices + 1;
         }
 
+    }
+
+    private HashMap<Integer, BitSet> cloneMatrix(HashMap<Integer, BitSet> src) {
+        HashMap<Integer, BitSet> dest = new HashMap<>();
+
+        for (int i = 0; i < src.size(); ++i) {
+            dest.put(i, (BitSet) src.get(i).clone());
+        }
+
+        return dest;
     }
 
     private static boolean[][] cloneMatrix(boolean[][] src) {
@@ -61,20 +85,6 @@ class DfsSearchInfo
 
         return dest;
     }
-    // @Override
-    // public boolean check(SearchInfo info,Graph q)
-    // {
-    // DfsSearchInfo info0 = ( DfsSearchInfo )info;
-    // if(info0.numVertices==q.vertices.length){
-    // return true;
-    // }
-    // return false;
-    // /*
-    // for(int i=0;i<info0.closed.length;i++){
-    // for(int j=0;j<info0.closed.length;j++){
-    // if(info0.closed[i][j]==true){
-    // return false;
-    // }
 
     @Override
     public BitSet getOpen() {
@@ -94,10 +104,4 @@ class DfsSearchInfo
         vers[0] = this.rightmostPath.peek();
         return vers;
     }
-
-    // }
-    // }
-    // return true;
-    // */
-    // }
 }

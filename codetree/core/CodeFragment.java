@@ -11,8 +11,6 @@ public interface CodeFragment {
 
     public abstract boolean bigger(CodeFragment other);
 
-    public abstract boolean contains_adj(CodeFragment other);
-
     public abstract boolean equals(Object other);
 
 }

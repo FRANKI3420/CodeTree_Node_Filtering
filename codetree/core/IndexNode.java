@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import codetree.common.Pair;
+import codetree.vertexBased.AcgmCode;
 
 public class IndexNode implements Serializable {
     public IndexNode parent;
@@ -151,6 +152,15 @@ public class IndexNode implements Serializable {
         }
     }
 
+    void addInfoDFS() {
+        for (IndexNode m : children) {
+            adjLabels.add(m.frag.getVlabel());
+        }
+        for (IndexNode m : children) {
+            m.addInfoDFS();
+        }
+    }
+
     void addPath(List<CodeFragment> code, int graphIndex, boolean supergraphSearch) {
         final int height = code.size();
 
@@ -260,23 +270,31 @@ public class IndexNode implements Serializable {
         traverse = true;
 
         List<Pair<IndexNode, SearchInfo>> infoList = impl.beginSearch(q, this);
-        if (delta >= q.order) {
+        if (impl == new AcgmCode()) {
+            if (delta >= q.order) {
+                for (Pair<IndexNode, SearchInfo> info : infoList) {
+                    // U.or(matchGraphIndicesBitSet);
+                    info.left.doublesearch(q, info.right, impl, false);
+                    if (!traverse)
+                        break;
+                }
 
-            // for (Pair<IndexNode, SearchInfo> info : infoList) {
-            // info.left.subsearch(q, info.right, impl);
-            // if (!traverse)
-            // break;
-            // }
-            // if (traverse) {
-            // for (Pair<IndexNode, SearchInfo> info : infoList) {
-            // info.left.supersearch(q, info.right, impl);
-            // }
-            // }
+                a_in_count = In.cardinality();
+                in_count += a_in_count;
+                result.or(In);
+                if (!traverse) {
+                    Can.clear();
+                } else {
+                    Can.andNot(In);
+                }
+            } else {
+                for (Pair<IndexNode, SearchInfo> info : infoList) {
+                    info.left.subsearch(q, info.right, impl);
+                }
+            }
+        } else {
             for (Pair<IndexNode, SearchInfo> info : infoList) {
-                // U.or(matchGraphIndicesBitSet);
-                info.left.doublesearch(q, info.right, impl, false);
-                if (!traverse)
-                    break;
+                info.left.subsearch_dfs(q, info.right, impl);
             }
             a_in_count = In.cardinality();
             in_count += a_in_count;
@@ -285,10 +303,6 @@ public class IndexNode implements Serializable {
                 Can.clear();
             } else {
                 Can.andNot(In);
-            }
-        } else {
-            for (Pair<IndexNode, SearchInfo> info : infoList) {
-                info.left.subsearch2(q, info.right, impl);
             }
         }
 
@@ -482,35 +496,6 @@ public class IndexNode implements Serializable {
         q_trav_num++;
         Can.and(matchGraphIndicesBitSet);
         traverse_num++;
-        if (depth == q.order) {
-            In.or(matchGraphIndicesBitSet);
-            // result.or(matchGraphIndicesBitSet);
-            traverse = false;
-            return;
-        }
-
-        if (children.size() == 0) {
-            return;
-        }
-
-        List<Pair<CodeFragment, SearchInfo>> nextFrags = impl.enumerateFollowableFragments(q, info, adjLabels);
-
-        for (IndexNode m : children) {
-            for (Pair<CodeFragment, SearchInfo> frag : nextFrags) {
-                if (m.frag.equals(frag.left)) {
-                    // if (frag.left.contains(m.frag)) {
-                    m.subsearch(q, frag.right, impl);
-                    if (!traverse)
-                        return;
-                }
-            }
-        }
-    }
-
-    private void subsearch2(Graph q, SearchInfo info, GraphCode impl) {
-        q_trav_num++;
-        Can.and(matchGraphIndicesBitSet);
-        traverse_num++;
 
         if (backtrackJudge()) {
             return;
@@ -525,8 +510,39 @@ public class IndexNode implements Serializable {
         for (IndexNode m : children) {
             for (Pair<CodeFragment, SearchInfo> frag : nextFrags) {
                 if (m.frag.equals(frag.left)) {
-                    // if (frag.left.contains(m.frag)) {
-                    m.subsearch2(q, frag.right, impl);
+                    m.subsearch(q, frag.right, impl);
+                }
+            }
+        }
+    }
+
+    private void subsearch_dfs(Graph q, SearchInfo info, GraphCode impl) {
+        q_trav_num++;
+        Can.and(matchGraphIndicesBitSet);
+        traverse_num++;
+
+        if (q.size + 1 == depth) {
+            In.or(matchGraphIndicesBitSet);
+            traverse = false;
+            return;
+        }
+
+        if (backtrackJudge()) {
+            return;
+        }
+
+        if (children.size() == 0) {
+            return;
+        }
+
+        List<Pair<CodeFragment, SearchInfo>> nextFrags = impl.enumerateFollowableFragments(q, info, adjLabels);
+
+        for (IndexNode m : children) {
+            for (Pair<CodeFragment, SearchInfo> frag : nextFrags) {
+                if (m.frag.equals(frag.left)) {
+                    m.subsearch_dfs(q, frag.right, impl);
+                    if (!traverse)
+                        return;
                 }
             }
         }
@@ -541,59 +557,6 @@ public class IndexNode implements Serializable {
                 return false;
         }
         return true;
-    }
-
-    private void equalsearch(Graph q, SearchInfo info, GraphCode impl) {
-        q_trav_num++;
-        Can.and(matchGraphIndicesBitSet);
-        traverse_num++;
-        if (depth == q.order) {
-            In.or(matchGraphIndicesBitSet);
-            // result.or(matchGraphIndicesBitSet);
-            // traverse = false;
-            return;
-        }
-        if (children.size() == 0) {
-            return;
-        }
-
-        List<Pair<CodeFragment, SearchInfo>> nextFrags = impl.enumerateFollowableFragments(q, info, adjLabels);
-
-        for (IndexNode m : children) {
-            for (Pair<CodeFragment, SearchInfo> frag : nextFrags) {
-                if (m.frag.equals(frag.left)) {
-                    m.equalsearch(q, frag.right, impl);
-                }
-            }
-        }
-    }
-
-    private void supersearch(Graph q, SearchInfo info, GraphCode impl) {
-        q_trav_num++;
-        if (depth == q.order) {
-            In.or(matchGraphIndicesBitSet);
-            // result.or(matchGraphIndicesBitSet);
-            // traverse = false;
-            return;
-        }
-
-        if (children.size() == 0) {
-            return;
-        }
-
-        List<Pair<CodeFragment, SearchInfo>> nextFrags = impl.enumerateFollowableFragments(q, info, adjLabels);
-
-        for (IndexNode m : children) {
-            for (Pair<CodeFragment, SearchInfo> frag : nextFrags) {
-                // if (frag.left.contains(m.frag)) {
-                if (m.frag.contains(frag.left)) {
-                    // if (m.frag.equals(frag.left)) {
-                    m.supersearch(q, frag.right, impl);
-                    // if (!traverse)
-                    // return;
-                }
-            }
-        }
     }
 
     static int traverse_cou = 0;
@@ -620,8 +583,10 @@ public class IndexNode implements Serializable {
             return;
         }
 
-        if (backtrackJudge(g, id)) {
+        if (impl == new AcgmCode() && backtrackJudge(g, id)) {
             return;
+        } else if (impl == new AcgmCode() && backtrackJudge_dfs(g, id)) {
+
         }
 
         // if (getNoTraversNode(g, id, gLabels))
@@ -661,6 +626,19 @@ public class IndexNode implements Serializable {
             }
             if (m.depth <= g.order) {
                 if (!m.backtrackJudge(g, id))
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean backtrackJudge_dfs(Graph g, int id) {
+        for (IndexNode m : children) {
+            if (!m.matchGraphIndicesBitSet.get(id)) {
+                return false;
+            }
+            if (m.depth <= g.size + 1) {
+                if (!m.backtrackJudge_dfs(g, id))
                     return false;
             }
         }

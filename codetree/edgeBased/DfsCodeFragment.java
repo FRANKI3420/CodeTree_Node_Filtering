@@ -77,13 +77,6 @@ class DfsCodeFragment
 
     @Override
     public boolean bigger(CodeFragment other) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'bigger'");
-    }
-
-    @Override
-    public boolean contains_adj(CodeFragment other) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'contains_adj'");
+        return this.equals(other);
     }
 }

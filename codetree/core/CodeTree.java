@@ -24,14 +24,13 @@ public class CodeTree implements Serializable {
         this.root = new IndexNode(null, null);
         rand = new Random(2);
 
-        List<CodeFragment> code = new ArrayList<>();
-
         long time = System.nanoTime();
 
         List<ArrayList<CodeFragment>> codelist = impl.computeCanonicalCode(Graph.numOflabels(G));
         for (ArrayList<CodeFragment> c : codelist) {
             root.addPath(c, -1, false);
         }
+        codelist = null;
 
         switch (dataset) {
             case "AIDS":
@@ -50,6 +49,7 @@ public class CodeTree implements Serializable {
 
             case "pdbs":
                 limDepth = 16;
+                // limDepth = 5;
                 break;
 
             case "IMDB-MULTI":
@@ -70,7 +70,7 @@ public class CodeTree implements Serializable {
         for (Graph g : G) {
             for (int l = 0; l < loop; l++) {
                 int start_vertice = rand.nextInt(g.order);
-                code = impl.computeCanonicalCode(g, start_vertice, limDepth);
+                List<CodeFragment> code = impl.computeCanonicalCode(g, start_vertice, limDepth);
                 // System.out.println(code.toString());
                 root.addPath(code, g.id, false);
             }
@@ -112,6 +112,8 @@ public class CodeTree implements Serializable {
 
         if (impl == new AcgmCode()) {
             root.addInfo();
+        } else {
+            root.addInfoDFS();
         }
 
         start = System.nanoTime();
@@ -173,10 +175,10 @@ public class CodeTree implements Serializable {
             } else if (g.id % (G.size() / 10) == 0) {
                 System.out.print(".");
             }
-            BitSet gLabels = g.labels_Set();
+            // BitSet gLabels = g.labels_Set();
             // root.addIDtoTree(g, impl, g.id);
-            root.addIDtoTree(g, impl, g.id, gLabels);
-
+            root.addIDtoTree(g, impl, g.id, null);
+            g.edges = null;
         }
     }
 
