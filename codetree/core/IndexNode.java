@@ -341,7 +341,7 @@ public class IndexNode implements Serializable {
             nonfail++;
             SPper_q = 1;
             FPre = 1;
-            FPratio_q = 0;
+            FPratio_q = 1;// A/C
             totoal_kai += result.cardinality();
             FP += FPre;
             FPratio += FPratio_q;
@@ -586,7 +586,7 @@ public class IndexNode implements Serializable {
         if (impl == new AcgmCode() && backtrackJudge(g, id)) {
             return;
         } else if (impl == new AcgmCode() && backtrackJudge_dfs(g, id)) {
-
+            return;
         }
 
         // if (getNoTraversNode(g, id, gLabels))

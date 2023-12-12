@@ -9,71 +9,73 @@ public class DfsCode
         implements GraphCode {
     @Override
     public List<CodeFragment> computeCanonicalCode(Graph g, int b) {
-        // final int n = g.size();
-        // ArrayList<CodeFragment> code = new ArrayList<>(n + 1);
+        final int n = g.size();
+        ArrayList<CodeFragment> code = new ArrayList<>(n + 1);
 
-        // ArrayList<DfsSearchInfo> infoList1 = new ArrayList<>();
-        // ArrayList<DfsSearchInfo> infoList2 = new ArrayList<>(b);
+        ArrayList<DfsSearchInfo> infoList1 = new ArrayList<>();
+        ArrayList<DfsSearchInfo> infoList2 = new ArrayList<>(b);
 
-        // final byte min = g.getMinVertexLabel();
-        // code.add(new DfsCodeFragment(min, (byte) -1, -1));
+        final byte min = g.getMinVertexLabel();
+        code.add(new DfsCodeFragment(min, (byte) -1, -1));
 
-        // List<Integer> minVertexList = g.getVertexList(min);
-        // for (int v0 : minVertexList) {
-        // infoList1.add(new DfsSearchInfo(g, v0));
-        // }
+        List<Integer> minVertexList = g.getVertexList(min);
+        for (int v0 : minVertexList) {
+            infoList1.add(new DfsSearchInfo(g, v0));
+        }
 
-        // for (int i = 0; i < n; ++i) {
-        // DfsCodeFragment minFrag = new DfsCodeFragment();
+        for (int i = 0; i < n; ++i) {
+            DfsCodeFragment minFrag = new DfsCodeFragment();
 
-        // for (DfsSearchInfo info : infoList1) {
-        // while (!info.rightmostPath.isEmpty()) {
-        // int v = info.rightmostPath.peek();
+            for (DfsSearchInfo info : infoList1) {
+                while (!info.rightmostPath.isEmpty()) {
+                    int v = info.rightmostPath.peek();
 
-        // int[] adj = g.adjList[v];
-        // for (int u : adj) {
-        // if (info.closed[v][u]) {
-        // continue;
-        // }
+                    int[] adj = g.adjList[v];
+                    for (int u : adj) {
+                        // if (info.closed[v][u]) {
+                        if (info.closedBitset.get(v).get(u)) { // backward edge
+                            continue;
+                        }
 
-        // DfsCodeFragment frag = null;
-        // if (info.closed[u][u]) {
-        // if (info.map[u] < info.map[v]) { // backward edge
-        // frag = new DfsCodeFragment((byte) -1, g.edges[u][v], info.map[u]);
-        // }
-        // } else { // forward edge
-        // frag = new DfsCodeFragment(g.vertices[u], g.edges[v][u], info.map[v]);
-        // }
+                        DfsCodeFragment frag = null;
+                        // if (info.closed[u][u]) {
+                        if (info.closedBitset.get(u).get(u)) { // backward edge
 
-        // if (frag != null) {
-        // final int cmpres = minFrag.isMoreCanonicalThan(frag);
-        // if (cmpres < 0) {
-        // minFrag = frag;
+                            if (info.map[u] < info.map[v]) { // backward edge
+                                frag = new DfsCodeFragment((byte) -1, g.edges[u][v], info.map[u]);
+                            }
+                        } else { // forward edge
+                            frag = new DfsCodeFragment(g.vertices[u], g.edges[v][u], info.map[v]);
+                        }
 
-        // infoList2.clear();
-        // infoList2.add(new DfsSearchInfo(info, v, u));
-        // } else if (cmpres == 0 && infoList2.size() < b) {
-        // infoList2.add(new DfsSearchInfo(info, v, u));
-        // }
-        // }
-        // }
+                        if (frag != null) {
+                            final int cmpres = minFrag.isMoreCanonicalThan(frag);
+                            if (cmpres < 0) {
+                                minFrag = frag;
 
-        // if (infoList2.size() > 0) {
-        // break;
-        // }
+                                infoList2.clear();
+                                infoList2.add(new DfsSearchInfo(info, v, u));
+                            } else if (cmpres == 0 && infoList2.size() < b) {
+                                infoList2.add(new DfsSearchInfo(info, v, u));
+                            }
+                        }
+                    }
 
-        // info.rightmostPath.pop();
-        // }
-        // }
+                    if (infoList2.size() > 0) {
+                        break;
+                    }
 
-        // code.add(minFrag);
+                    info.rightmostPath.pop();
+                }
+            }
 
-        // infoList1 = infoList2;
-        // infoList2 = new ArrayList<>(b);
-        // }
+            code.add(minFrag);
 
-        // return code;
-        return null;
+            infoList1 = infoList2;
+            infoList2 = new ArrayList<>(b);
+        }
+
+        return code;
     }
 
     @Override

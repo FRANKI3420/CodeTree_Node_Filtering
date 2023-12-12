@@ -283,6 +283,75 @@ public class Graph implements Serializable {
         return vertices[index];
     }
 
+    public HashSet<Integer> getTargetVertices(int limDepth, int start_vertice) {
+        HashSet<Integer> target = new HashSet<>();
+        target.add(start_vertice);
+        Random rand = new Random(0);
+        boolean[] visited = new boolean[order];
+        visited[start_vertice] = true;
+        BitSet open = new BitSet();
+        for (int v : adjList[start_vertice]) {
+            open.set(v);
+        }
+
+        for (int i = 0; i < limDepth - 1; i++) {
+            ArrayList<Integer> next = new ArrayList<>();
+
+            for (int v = open.nextSetBit(0); v != -1; v = open
+                    .nextSetBit(++v)) {
+                if (!visited[v]) {
+                    next.add(v);
+                }
+            }
+
+            // for (int v : adjList[start_vertice]) {
+            // if (!visited[v]) {
+            // next.add(v);
+            // }
+            // }
+            if (next.size() == 0) {
+                return target;
+            }
+
+            int random = rand.nextInt(next.size());
+            start_vertice = next.get(random);
+            target.add(start_vertice);
+            visited[start_vertice] = true;
+            for (int v : adjList[start_vertice]) {
+                // if (!visited[v]) {
+                open.set(v);
+                // }s
+            }
+        }
+        return target;
+    }
+
+    public Graph generateInducedGraph(HashSet<Integer> targetVertices) {
+
+        int n = targetVertices.size();
+        byte[] newvertices = new byte[n];
+        byte[][] newedges = new byte[n][n];
+        int count = 0;
+        for (int v : targetVertices) {
+            newvertices[count++] = vertices[v];
+        }
+        count = 0;
+        int count2 = 0;
+        for (int v : targetVertices) {
+            for (int u : targetVertices) {
+                if (edges[v][u] == 1) {
+                    newedges[count][count2] = 1;
+                    newedges[count2][count] = 1;
+                }
+                count2++;
+            }
+            count++;
+            count2 = 0;
+        }
+
+        return new Graph(id, newvertices, newedges);
+    }
+
     public void writeGraph2Gfu(BufferedWriter bw2) throws IOException {
 
         bw2.write("#" + id + "\n");

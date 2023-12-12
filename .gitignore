@@ -7,5 +7,5 @@ CodeTree_result_final2/*.csv
 datagraph.gfu
 output2.txt
 
-.vscode
+.vscode/*
 *.json

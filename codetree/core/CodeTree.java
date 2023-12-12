@@ -64,14 +64,17 @@ public class CodeTree implements Serializable {
                 limDepth = 7;
                 break;
         }
-
         delta = limDepth;
         int loop = 1;
         for (Graph g : G) {
             for (int l = 0; l < loop; l++) {
                 int start_vertice = rand.nextInt(g.order);
-                List<CodeFragment> code = impl.computeCanonicalCode(g, start_vertice, limDepth);
-                // System.out.println(code.toString());
+
+                HashSet<Integer> targetVertices = g.getTargetVertices(limDepth, start_vertice);
+                System.out.println(targetVertices.toString());
+                Graph inducedGraph = g.generateInducedGraph(targetVertices);
+                // code = impl.computeCanonicalCode(g, start_vertice, limDepth);
+                List<CodeFragment> code = impl.computeCanonicalCode(inducedGraph, 100);
                 root.addPath(code, g.id, false);
             }
         }
