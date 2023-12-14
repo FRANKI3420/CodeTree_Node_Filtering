@@ -926,27 +926,29 @@ public class IndexNode implements Serializable {
             allbw.write(String.format("%.5f", FPratio / nonfail) + ","
                     + String.format("%.5f", FP / nonfail) + ","
                     + String.format("%.5f", SP / nonfail) + ","
-                    + String.format("%.6f", (double) search_time / 1000 / 1000 / nonfail) + ","// fil
+                    + String.format("%.6f", (double) (search_time + nodeFiltering_time) / 1000 / 1000 / nonfail) + ","// fil
                     + String.format("%.6f", CT_verify / nonfail) + ","// ver
                     // + String.format("%.6f", ((double) search_time / 1000 / 1000 + // query
                     // verification_time) / 100)
                     + String.format("%.6f", ((double) search_time / 1000 / 1000 +
-                            verification_time + (double) (edgeFiltering_time + nodeFiltering_time) / 1000 / 1000) / 100)
+                            verification_time + (double) (nodeFiltering_time) / 1000 / 1000) / 100)
                     + ","
                     + String.format("%.6f", (double) contains_search / 1000 / 1000 / nonfail) + ","// tree1
-                    + String.format("%.6f", (double) equals_search / 1000 / 1000 / nonfail) + ","// tree2
-                    + String.format("%.6f", (double) edgeFiltering_time / 1000 / 1000 / nonfail) + ","// edge fil
+                    // + String.format("%.6f", (double) equals_search / 1000 / 1000 / nonfail) +
+                    // ","// tree2
+                    // + String.format("%.6f", (double) edgeFiltering_time / 1000 / 1000 / nonfail)
+                    // + ","// edge fil
                     + String.format("%.6f", (double) nodeFiltering_time / 1000 / 1000 / nonfail) + ","// node fil
-                    + String.format("%.1f", (double) in_count) + ","
-                    + String.format("%.1f", (double) totoal_kai) + ","
-                    + String.format("%.1f", (double) doukeicount) + ","
-                    + String.format("%.1f", (double) fil_count) + ","
-                    + String.format("%.1f", (double) lab_fil_num) + ","
-                    + String.format("%.1f", (double) labelNumFiltering) + ","
+                    + String.format("%.0f", (double) in_count) + ","
+                    + String.format("%.0f", (double) totoal_kai) + ","
+                    + String.format("%.0f", (double) doukeicount) + ","
+                    + String.format("%.0f", (double) fil_count) + ","
+                    // + String.format("%.1f", (double) lab_fil_num) + ","
+                    // + String.format("%.1f", (double) labelNumFiltering) + ","
                     // + String.format("%.1f", (double) removeTotalGraphs / nonfail) + ","//
                     // 何かを削除できたグラフ数
                     + String.format("%.1f", (double) query_per_nf_count) + ","// 削除できた頂点数
-                    + String.format("%.1f", (double) filtering_edge_num) + ","// 削除できた辺数
+                    // + String.format("%.1f", (double) filtering_edge_num) + ","// 削除できた辺数
                     + String.format("%.1f", (double) removeTotalSize) + ","// 削除できた総辺数
 
                     + String.format("%.6f", (((double) search_time / 1000 / 1000) / (size *
@@ -962,27 +964,29 @@ public class IndexNode implements Serializable {
             br_whole.write(String.format("%.5f", FPratio / nonfail) + ","
                     + String.format("%.5f", FP / nonfail) + ","
                     + String.format("%.5f", SP / nonfail) + ","
-                    + String.format("%.6f", (double) search_time / 1000 / 1000 / nonfail) + ","// fil
+                    + String.format("%.6f", (double) (search_time + nodeFiltering_time) / 1000 / 1000 / nonfail) + ","// fil
                     + String.format("%.6f", CT_verify / nonfail) + ","// ver
                     // + String.format("%.6f", ((double) search_time / 1000 / 1000 + // query
                     // verification_time) / 100)
                     + String.format("%.6f", ((double) search_time / 1000 / 1000 +
-                            verification_time + (double) (edgeFiltering_time + nodeFiltering_time) / 1000 / 1000) / 100)
+                            verification_time + (double) (nodeFiltering_time) / 1000 / 1000) / 100)
                     + ","
                     + String.format("%.6f", (double) contains_search / 1000 / 1000 / nonfail) + ","// tree1
-                    + String.format("%.6f", (double) equals_search / 1000 / 1000 / nonfail) + ","// tree2
-                    + String.format("%.6f", (double) edgeFiltering_time / 1000 / 1000 / nonfail) + ","// edge fil
+                    // + String.format("%.6f", (double) equals_search / 1000 / 1000 / nonfail) +
+                    // ","// tree2
+                    // + String.format("%.6f", (double) edgeFiltering_time / 1000 / 1000 / nonfail)
+                    // + ","// edge fil
                     + String.format("%.6f", (double) nodeFiltering_time / 1000 / 1000 / nonfail) + ","// node fil
-                    + String.format("%.1f", (double) totoal_kai) + ","
-                    + String.format("%.1f", (double) in_count) + ","
-                    + String.format("%.1f", (double) doukeicount) + ","
-                    + String.format("%.1f", (double) fil_count) + ","
-                    + String.format("%.1f", (double) lab_fil_num) + ","
-                    + String.format("%.1f", (double) labelNumFiltering) + ","
+                    + String.format("%.0f", (double) in_count) + ","
+                    + String.format("%.0f", (double) totoal_kai) + ","
+                    + String.format("%.0f", (double) doukeicount) + ","
+                    + String.format("%.0f", (double) fil_count) + ","
+                    // + String.format("%.1f", (double) lab_fil_num) + ","
+                    // + String.format("%.1f", (double) labelNumFiltering) + ","
                     // + String.format("%.1f", (double) removeTotalGraphs / nonfail) + ","//
                     // 何かを削除できたグラフ数
                     + String.format("%.1f", (double) query_per_nf_count) + ","// 削除できた頂点数
-                    + String.format("%.1f", (double) filtering_edge_num) + ","// 削除できた辺数
+                    // + String.format("%.1f", (double) filtering_edge_num) + ","// 削除できた辺数
                     + String.format("%.1f", (double) removeTotalSize) + ","// 削除できた総辺数
 
                     + String.format("%.6f", (((double) search_time / 1000 / 1000) / (size *
@@ -994,6 +998,7 @@ public class IndexNode implements Serializable {
                     + "," + (size * nonfail - veq_Can_total) + "," + nonfail + "," + verfyNum
                     + "," + q_trav_num
                     + "\n");
+            ;
 
             bw.write("(C)書き込み関数時間(ms): " + String.format("%.2f", (double) write_time /
                     1000 / 1000) + "\n");
@@ -1005,20 +1010,17 @@ public class IndexNode implements Serializable {
             bw.write("contain_search_time (ms): "
                     + String.format("%.6f", (double) contains_search / 1000 / 1000 / nonfail)
                     + "\n");
-            bw.write("equals_search_time (ms): "
-                    + String.format("%.6f", (double) equals_search / 1000 / 1000 / nonfail)
-                    + "\n");
 
             bw.write("Number of Filtering Graphs: " + fil_count + "\n");
-            bw.write("Number of Node Filteirng Graphs: " + lab_fil_num + "\n");
-            bw.write("Number of Label Filteirng Graphs: " + labelNumFiltering + "\n");
+            // bw.write("Number of Node Filteirng Graphs: " + lab_fil_num + "\n");
+            // bw.write("Number of Label Filteirng Graphs: " + labelNumFiltering + "\n");
 
             bw.write("Number of inclusion Graphs: " + in_count + "\n");
             bw.write("Number of Candidate Graphs: " + doukeicount + "\n");
             bw.write("Number of Answer Graphs: " + totoal_kai + "\n");
             bw.write("filtering Presison : " + String.format("%.5f", FP / nonfail) +
                     "\n");
-            bw.write("FP ratio : " + String.format("%.5f", FPratio / nonfail) + "\n");
+            bw.write("FP (A/C) : " + String.format("%.5f", FPratio / nonfail) + "\n");
             bw.write("inclusion Presison : " + String.format("%.5f", SP) + "%" + "\n");
 
             // bw.write(
@@ -1028,42 +1030,43 @@ public class IndexNode implements Serializable {
             // / (size * nonfail - veq_Can_total))
             // + "\n");
 
-            // bw.write("何かを削除できたグラフ数/q:" + (double) removeTotalGraphs / nonfail + "\n");
-            // bw.write("削除できた頂点数/q:" + (double) query_per_nf_count / nonfail + "\n");
-            bw.write("削除できた頂点数/|Can(Q)|:" + (double) query_per_nf_count / (doukeicount + lab_fil_num) + "\n");
+            bw.write("削除できた頂点数/|Can(Q)|:" + (double) query_per_nf_count / (doukeicount) + "\n");
 
-            bw.write("削除できた辺数/q:" + (double) filtering_edge_num / nonfail + "\n");
-            bw.write("削除できた総辺数/q:" + (double) removeTotalSize / nonfail + "\n");
+            // bw.write("削除できた総辺数/q:" + (double) removeTotalSize / nonfail + "\n");
 
-            bw.write("(A)a Filtering Time (ms): "
+            bw.write("(A)=(B)+(C) Filtering Time (ms): "
+                    + String.format("%.6f", (double) (search_time + nodeFiltering_time) / 1000 / 1000 / nonfail)
+                    + "\n");
+
+            bw.write("(B) search Time (ms): "
                     + String.format("%.6f", (double) search_time / 1000 / 1000 / nonfail)
                     + "\n");
 
-            bw.write("(C)Edge_Filtering_Time (ms): "
-                    + String.format("%.6f", (double) edgeFiltering_time / 1000 / 1000 / nonfail)
-                    + "\n");
+            // bw.write("(C)Edge_Filtering_Time (ms): "
+            // + String.format("%.6f", (double) edgeFiltering_time / 1000 / 1000 / nonfail)
+            // + "\n");
 
-            bw.write("(D)Node_Filtering_Time (ms): "
+            bw.write("(C)Node_Filtering_Time (ms): "
                     + String.format("%.6f", (double) nodeFiltering_time / 1000 / 1000 / nonfail)
                     + "\n");
-            bw.write("(D+)Node_Filtering_Time (ms): "
-                    + String.format("%.6f", (double) labelFiltering_time / 1000 / 1000 / nonfail)
-                    + "\n");
+            // bw.write("(D+)Node_Filtering_Time (ms): "
+            // + String.format("%.6f", (double) labelFiltering_time / 1000 / 1000 / nonfail)
+            // + "\n");
 
             bw.write("(a)a VEQs Filtering Time (ms): " + String.format("%.6f",
                     query_per_veqF / nonfail) + "\n");
             bw.write("(b)a VEQs Verification Time (ms): " + String.format("%.6f",
                     query_per_veqV / nonfail) + "\n");
-            bw.write("(B=a+b)a Verification Time (ms): " + String.format("%.6f",
+            bw.write("(D=a+b)a Verification Time (ms): " + String.format("%.6f",
                     query_per_sum / nonfail)
                     + "\n");
-            bw.write("(A)+(B)a Processing Time (ms): "
+            // bw.write("(A)+(D)a Processing Time (ms): "
+            // + String.format("%.6f", ((double) search_time / 1000 / 1000 +
+            // verification_time) / 100)
+            // + "\n");
+            bw.write("(A)+(D) a Processing Time (ms): "
                     + String.format("%.6f", ((double) search_time / 1000 / 1000 +
-                            verification_time) / 100)
-                    + "\n");
-            bw.write("(A)+(B)+(C)+(D) a Processing Time (ms): "
-                    + String.format("%.6f", ((double) search_time / 1000 / 1000 +
-                            verification_time + (double) (edgeFiltering_time + nodeFiltering_time) / 1000 / 1000) / 100)
+                            verification_time + (double) (nodeFiltering_time) / 1000 / 1000) / 100)
                     + "\n");
 
         } catch (IOException e) {
