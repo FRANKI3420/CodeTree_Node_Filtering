@@ -9,3 +9,4 @@ output2.txt
 
 .vscode
 *.json
+*.ser

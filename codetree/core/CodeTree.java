@@ -5,7 +5,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.*;
 
 public class CodeTree implements Serializable {
@@ -45,7 +48,7 @@ public class CodeTree implements Serializable {
                 break;
 
             case "REDDIT-MULTI-5K":
-                limDepth = 3;
+                limDepth = 5;
                 break;
 
             case "pdbs":
@@ -109,10 +112,10 @@ public class CodeTree implements Serializable {
         System.out.println("tree size (original): " + treesize);
         index.write(treesize + ",");
 
-        List<Graph> leafGraphs = new ArrayList<>();
-        root.getLeafGraph(leafGraphs);
-        inclusionCheck2(impl, leafGraphs);
-        root.removeTree();
+        // List<Graph> leafGraphs = new ArrayList<>();
+        // root.getLeafGraph(leafGraphs);
+        // inclusionCheck2(impl, leafGraphs);
+        // root.removeTree();
         treesize = root.size();
 
         System.out.println("tree size (new): " + treesize);
@@ -136,18 +139,21 @@ public class CodeTree implements Serializable {
         index.write(String.format("%.3f", (double) (System.nanoTime() - start) / 1000
                 / 1000));
 
-        // try {
-        // String codetree = String.format("data_structure/%s/depth%d_structure.ser",
-        // dataset, limDepth);
-        // FileOutputStream fileOut = new FileOutputStream(codetree);
-        // ObjectOutputStream objout = new ObjectOutputStream(fileOut);
-        // objout.writeObject(this);
-        // objout.close();
-        // fileOut.close();
-        // System.out.println("データ構造がシリアライズされ、ファイルに保存されました。");
-        // } catch (IOException e) {
-        // e.printStackTrace();
-        // }
+        try {
+            String codetree = String.format("data_structure/%s.ser",
+                    dataset);
+            FileOutputStream fileOut = new FileOutputStream(codetree);
+            ObjectOutputStream objout = new ObjectOutputStream(fileOut);
+            objout.writeObject(this);
+            objout.close();
+            fileOut.close();
+            System.out.println("データ構造がシリアライズされ、ファイルに保存されました。");
+            // File file = new File(codetree);
+            // long fileSize = file.length();
+            // System.out.println("File size: " + fileSize + " bytes");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public CodeTree(GraphCode impl, List<Graph> G, int b) {

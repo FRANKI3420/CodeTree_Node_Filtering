@@ -43,7 +43,7 @@ class Main {
             br_whole.write(
                     "dataset,query_set,A/C,(G-C)/(G-A),SP,filtering_time(ms),verification_time(ms),query_time(ms),tree1_search_time(ms),node_fil_time(ms),|In(Q)|,|A(Q)|,|Can(Q)|,|F(Q)|,Num deleted Vertices,total deleted edges Num,codetree_filtime/fil_num,codetree_fil_num,allfil_num/allfil_time,allfil_num,nonfail,verify num,q_trav_num\n");
 
-            for (datasetID = 0; datasetID <= 6; datasetID++) {
+            for (datasetID = 0; datasetID <= 5; datasetID++) {
 
                 boolean nec = false;
                 if (datasetID < 0 || datasetID > 6) {

@@ -19,7 +19,7 @@ public class IndexNode implements Serializable {
     protected boolean supNode;
     protected BitSet matchGraphIndicesBitSet;
     public HashSet<Byte> adjLabels;
-    protected int nodeID;
+    // protected int nodeID;
 
     protected int traverse_num = 0;
     protected LinkedHashMap<Integer, BitSet> labelFiltering;
@@ -105,7 +105,7 @@ public class IndexNode implements Serializable {
         supNode = false;
         count = 0;
         depth = 0;
-        nodeID = 0;
+        // nodeID = 0;
         adjLabels = new HashSet<>();
         traverse_num = 0;
         labelFiltering = new LinkedHashMap<>();
@@ -150,10 +150,10 @@ public class IndexNode implements Serializable {
     void addPath(List<CodeFragment> code, int graphIndex, boolean supergraphSearch) {
         final int height = code.size();
 
-        if (this.nodeID == 0) {
-            nodeIDcount++;
-            nodeID = nodeIDcount;
-        }
+        // if (this.nodeID == 0) {
+        // nodeIDcount++;
+        // nodeID = nodeIDcount;
+        // }
 
         if (supergraphSearch) {
             ++count;
