@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import codetree.common.Pair;
+import codetree.edgeBased.DfsCode;
 import codetree.vertexBased.AcgmCode;
 
 public class IndexNode implements Serializable {
@@ -583,17 +584,22 @@ public class IndexNode implements Serializable {
             return;
         }
 
-        if (impl == new AcgmCode() && backtrackJudge(g, id)) {
+        // if (impl == new AcgmCode() && backtrackJudge(g, id)) {
+        // return;
+        // } else if (impl == new DfsCode() && backtrackJudge_dfs(g, id)) {
+        // return;
+        // }
+
+        if (backtrackJudge_dfs(g, id))
             return;
-        } else if (impl == new AcgmCode() && backtrackJudge_dfs(g, id)) {
-            return;
-        }
 
         // if (getNoTraversNode(g, id, gLabels))
         // return;
 
-        List<Pair<CodeFragment, SearchInfo>> nextFrags = impl.enumerateFollowableFragments(g, info, adjLabels,
-                childEdgeFrag);
+        // List<Pair<CodeFragment, SearchInfo>> nextFrags =
+        // impl.enumerateFollowableFragments(g, info, adjLabels,
+        // childEdgeFrag);
+        List<Pair<CodeFragment, SearchInfo>> nextFrags = impl.enumerateFollowableFragments(g, info, adjLabels);
 
         for (IndexNode m : children) {
             for (Pair<CodeFragment, SearchInfo> frag : nextFrags) {

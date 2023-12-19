@@ -71,7 +71,7 @@ public class CodeTree implements Serializable {
                 int start_vertice = rand.nextInt(g.order);
 
                 HashSet<Integer> targetVertices = g.getTargetVertices(limDepth, start_vertice);
-                System.out.println(targetVertices.toString());
+                // System.out.println(targetVertices.toString());
                 Graph inducedGraph = g.generateInducedGraph(targetVertices);
                 // code = impl.computeCanonicalCode(g, start_vertice, limDepth);
                 List<CodeFragment> code = impl.computeCanonicalCode(inducedGraph, 100);
@@ -98,10 +98,10 @@ public class CodeTree implements Serializable {
         System.out.println("tree size (original): " + treesize);
         index.write(treesize + ",");
 
-        List<Graph> leafGraphs = new ArrayList<>();
-        root.getLeafGraph(impl, leafGraphs);
-        inclusionCheck2(impl, leafGraphs);
-        root.removeTree();
+        // List<Graph> leafGraphs = new ArrayList<>();
+        // root.getLeafGraph(impl, leafGraphs);
+        // inclusionCheck2(impl, leafGraphs);
+        // root.removeTree();
         treesize = root.size();
 
         System.out.println("tree size (new): " + treesize);

@@ -33,19 +33,27 @@ public class DfsCode
                     int[] adj = g.adjList[v];
                     for (int u : adj) {
                         // if (info.closed[v][u]) {
-                        if (info.closedBitset.get(v).get(u)) { // backward edge
+                        // if (info.closedBitset.get(v).get(u)) { // backward edge
+                        if (checkContain(u, info.vertexIDs)) { // backward edge
                             continue;
                         }
 
                         DfsCodeFragment frag = null;
                         // if (info.closed[u][u]) {
-                        if (info.closedBitset.get(u).get(u)) { // backward edge
+                        // if (info.closedBitset.get(u).get(u)) { // backward edge
+                        if (checkContain(u, info.vertexIDs)) { // backward edge
 
-                            if (info.map[u] < info.map[v]) { // backward edge
-                                frag = new DfsCodeFragment((byte) -1, g.edges[u][v], info.map[u]);
+                            int uIndex = getIndex(info.vertexIDs, u);
+                            int vIndex = getIndex(info.vertexIDs, v);
+
+                            // if (info.map[u] < info.map[v]) { // backward edge
+                            // frag = new DfsCodeFragment((byte) -1, g.edges[u][v], info.map[u]);
+                            // }
+                            if (uIndex < vIndex) { // backward edge
+                                frag = new DfsCodeFragment((byte) -1, g.edges[u][v], uIndex);
                             }
                         } else { // forward edge
-                            frag = new DfsCodeFragment(g.vertices[u], g.edges[v][u], info.map[v]);
+                            frag = new DfsCodeFragment(g.vertices[u], g.edges[v][u], getIndex(info.vertexIDs, v));
                         }
 
                         if (frag != null) {
@@ -106,21 +114,29 @@ public class DfsCode
 
             int[] adj = graph.adjList[v];
             for (int u : adj) {
-                // if (info.closed[v][u]) {
-                if (info.closedBitset.get(v).get(u)) {
+                // if (info.closedBitset.get(v).get(u)) {
+                // continue;
+                // }
+                if (checkContain(u, info.vertexIDs)) {
                     continue;
                 }
 
-                // if (info.closed[u][u]) { // backward edge
-                if (info.closedBitset.get(u).get(u)) { // backward edge
+                // if (info.closedBitset.get(u).get(u)) { // backward edge
+                if (checkContain(u, info.vertexIDs)) { // backward edge
                     if (!backtrack) {
+                        // frags.add(new Pair<CodeFragment, SearchInfo>(
+                        // new DfsCodeFragment((byte) -1, graph.edges[u][v], info.map[u]),
+                        // new DfsSearchInfo(info, v, u)));
                         frags.add(new Pair<CodeFragment, SearchInfo>(
-                                new DfsCodeFragment((byte) -1, graph.edges[u][v], info.map[u]),
+                                new DfsCodeFragment((byte) -1, graph.edges[u][v], getIndex(info.vertexIDs, u)),
                                 new DfsSearchInfo(info, v, u)));
                     }
                 } else { // forward edge
+                    // frags.add(new Pair<CodeFragment, SearchInfo>(
+                    // new DfsCodeFragment(graph.vertices[u], graph.edges[v][u], info.map[v]),
+                    // new DfsSearchInfo(info, v, u)));
                     frags.add(new Pair<CodeFragment, SearchInfo>(
-                            new DfsCodeFragment(graph.vertices[u], graph.edges[v][u], info.map[v]),
+                            new DfsCodeFragment(graph.vertices[u], graph.edges[v][u], getIndex(info.vertexIDs, v)),
                             new DfsSearchInfo(info, v, u)));
                 }
             }
@@ -130,65 +146,65 @@ public class DfsCode
         }
 
         return frags;
-        // return null;
     }
 
     @Override
     public List<CodeFragment> computeCanonicalCode(Graph g, int start, int limDepth) {
-        final int n = g.size();
-        ArrayList<CodeFragment> code = new ArrayList<>(n + 1);
+        // final int n = g.size();
+        // ArrayList<CodeFragment> code = new ArrayList<>(n + 1);
 
-        ArrayList<DfsSearchInfo> infoList1 = new ArrayList<>();
+        // ArrayList<DfsSearchInfo> infoList1 = new ArrayList<>();
 
-        code.add(new DfsCodeFragment(g.vertices[start], (byte) -1, -1));
+        // code.add(new DfsCodeFragment(g.vertices[start], (byte) -1, -1));
 
-        infoList1.add(new DfsSearchInfo(g, start));
-        Random rand = new Random(0);
+        // infoList1.add(new DfsSearchInfo(g, start));
+        // Random rand = new Random(0);
 
-        for (int i = 0; i < limDepth - 1; ++i) {// edge-1=vnum
-            ArrayList<Integer> next = new ArrayList<>();
-            int now = code.size();
+        // for (int i = 0; i < limDepth - 1; ++i) {// edge-1=vnum
+        // ArrayList<Integer> next = new ArrayList<>();
+        // int now = code.size();
 
-            for (DfsSearchInfo info : infoList1) {
-                while (!info.rightmostPath.isEmpty()) {
-                    int v = info.rightmostPath.peek();
+        // for (DfsSearchInfo info : infoList1) {
+        // while (!info.rightmostPath.isEmpty()) {
+        // int v = info.rightmostPath.peek();
 
-                    int[] adj = g.adjList[v];
-                    for (int u : adj) {
-                        // if (!info.closed[v][u]) {
-                        if (!info.closedBitset.get(v).get(u)) {
-                            next.add(u);
-                        }
-                    }
-                    if (next.size() == 0) {
-                        info.rightmostPath.pop();
-                        continue;
-                    }
+        // int[] adj = g.adjList[v];
+        // for (int u : adj) {
+        // // if (!info.closed[v][u]) {
+        // if (!info.closedBitset.get(v).get(u)) {
+        // next.add(u);
+        // }
+        // }
+        // if (next.size() == 0) {
+        // info.rightmostPath.pop();
+        // continue;
+        // }
 
-                    int random = rand.nextInt(next.size());
-                    int u2 = next.get(random);
+        // int random = rand.nextInt(next.size());
+        // int u2 = next.get(random);
 
-                    DfsCodeFragment frag = null;
-                    // if (info.closed[u2][u2]) {
-                    if (info.closedBitset.get(u2).get(u2)) {
-                        if (info.map[u2] < info.map[v]) { // backward edge
-                            frag = new DfsCodeFragment((byte) -1, g.edges[u2][v], info.map[u2]);
-                        }
-                    } else { // forward edge
-                        frag = new DfsCodeFragment(g.vertices[u2], g.edges[v][u2], info.map[v]);
-                    }
+        // DfsCodeFragment frag = null;
+        // // if (info.closed[u2][u2]) {
+        // if (info.closedBitset.get(u2).get(u2)) {
+        // if (info.map[u2] < info.map[v]) { // backward edge
+        // frag = new DfsCodeFragment((byte) -1, g.edges[u2][v], info.map[u2]);
+        // }
+        // } else { // forward edge
+        // frag = new DfsCodeFragment(g.vertices[u2], g.edges[v][u2], info.map[v]);
+        // }
 
-                    infoList1.clear();
-                    infoList1.add(new DfsSearchInfo(info, v, u2));
-                    code.add(frag);
-                    break;
-                }
-            }
-            if (now == code.size()) {
-                return code;
-            }
-        }
-        return code;
+        // infoList1.clear();
+        // infoList1.add(new DfsSearchInfo(info, v, u2));
+        // code.add(frag);
+        // break;
+        // }
+        // }
+        // if (now == code.size()) {
+        // return code;
+        // }
+        // }
+        // return code;
+        return null;
     }
 
     @Override
@@ -214,22 +230,28 @@ public class DfsCode
             int v = info.rightmostPath.peek();
 
             int[] adj = graph.adjList[v];
+
             for (int u : adj) {
-                // if (info.closed[v][u] || !childrenVlabel.contains(graph.vertices[u])) {
-                if (info.closedBitset.get(v).get(u) || !childrenVlabel.contains(graph.vertices[u])) {
+
+                // if (info.closedBitset.get(v).get(u) ||
+                // !childrenVlabel.contains(graph.vertices[u])) {
+                // continue;
+                // }
+                if (checkContain(u, info.vertexIDs) || !childrenVlabel.contains(graph.vertices[u])) {
                     continue;
                 }
 
-                // if (info.closed[u][u]) { // backward edge
-                if (info.closedBitset.get(u).get(u)) { // backward edge
+                // if (info.closedBitset.get(u).get(u)) { // backward edge
+                if (checkContain(u, info.vertexIDs)) { // backward edge
                     if (!backtrack) {
+
                         frags.add(new Pair<CodeFragment, SearchInfo>(
-                                new DfsCodeFragment((byte) -1, graph.edges[u][v], info.map[u]),
+                                new DfsCodeFragment((byte) -1, graph.edges[u][v], getIndex(info.vertexIDs, u)),
                                 new DfsSearchInfo(info, v, u)));
                     }
                 } else { // forward edge
                     frags.add(new Pair<CodeFragment, SearchInfo>(
-                            new DfsCodeFragment(graph.vertices[u], graph.edges[v][u], info.map[v]),
+                            new DfsCodeFragment(graph.vertices[u], graph.edges[v][u], getIndex(info.vertexIDs, v)),
                             new DfsSearchInfo(info, v, u)));
                 }
             }
@@ -240,44 +262,114 @@ public class DfsCode
 
         return frags;
     }
+    // @Override
+    // public List<Pair<CodeFragment, SearchInfo>>
+    // enumerateFollowableFragments(Graph graph, SearchInfo info0,
+    // HashSet<Byte> childrenVlabel) {
+    // ArrayList<Pair<CodeFragment, SearchInfo>> frags = new ArrayList<>();
+
+    // DfsSearchInfo info = (DfsSearchInfo) info0;
+
+    // boolean backtrack = false;
+    // while (!info.rightmostPath.isEmpty()) {
+    // int v = info.rightmostPath.peek();
+
+    // int[] adj = graph.adjList[v];
+
+    // for (int u : adj) {
+
+    // if (info.closedBitset.get(v).get(u) ||
+    // !childrenVlabel.contains(graph.vertices[u])) {
+    // continue;
+    // }
+
+    // if (info.closedBitset.get(u).get(u)) { // backward edge
+    // if (!backtrack) {
+    // // frags.add(new Pair<CodeFragment, SearchInfo>(
+    // // new DfsCodeFragment((byte) -1, graph.edges[u][v], info.map[u]),
+    // // new DfsSearchInfo(info, v, u)));
+    // frags.add(new Pair<CodeFragment, SearchInfo>(
+    // new DfsCodeFragment((byte) -1, graph.edges[u][v], getIndex(info.vertexIDs,
+    // u)),
+    // new DfsSearchInfo(info, v, u)));
+    // }
+    // } else { // forward edge
+    // // frags.add(new Pair<CodeFragment, SearchInfo>(
+    // // new DfsCodeFragment(graph.vertices[u], graph.edges[v][u], info.map[v]),
+    // // new DfsSearchInfo(info, v, u)));
+    // frags.add(new Pair<CodeFragment, SearchInfo>(
+    // new DfsCodeFragment(graph.vertices[u], graph.edges[v][u],
+    // getIndex(info.vertexIDs, v)),
+    // new DfsSearchInfo(info, v, u)));
+    // }
+    // }
+
+    // info.rightmostPath.pop();
+    // backtrack = true;
+    // }
+
+    // return frags;
+    // }
+
+    private boolean checkContain(int v, int[] vertexIDs) {
+        for (int i : vertexIDs) {
+            if (i == v) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private int getIndex(int[] vertexIDs, int u) {
+        int index = 0;
+        for (int i : vertexIDs) {
+            if (i == u) {
+                return index;
+            }
+            index++;
+        }
+        return index;
+    }
 
     @Override
     public List<Pair<CodeFragment, SearchInfo>> enumerateFollowableFragments(Graph graph, SearchInfo info0,
             HashSet<Byte> childrenVlabel, BitSet childEdgeFrag) {
-        ArrayList<Pair<CodeFragment, SearchInfo>> frags = new ArrayList<>();
+        // ArrayList<Pair<CodeFragment, SearchInfo>> frags = new ArrayList<>();
 
-        DfsSearchInfo info = (DfsSearchInfo) info0;
+        // DfsSearchInfo info = (DfsSearchInfo) info0;
 
-        boolean backtrack = false;
-        while (!info.rightmostPath.isEmpty()) {
-            int v = info.rightmostPath.peek();
+        // boolean backtrack = false;
+        // while (!info.rightmostPath.isEmpty()) {
+        // int v = info.rightmostPath.peek();
 
-            int[] adj = graph.adjList[v];
-            for (int u : adj) {
-                // if (info.closed[v][u] || !childrenVlabel.contains(graph.vertices[u])) {
-                if (info.closedBitset.get(v).get(u) || !childrenVlabel.contains(graph.vertices[u])) {
-                    continue;
-                }
+        // int[] adj = graph.adjList[v];
+        // for (int u : adj) {
+        // // if (info.closed[v][u] || !childrenVlabel.contains(graph.vertices[u])) {
+        // if (info.closedBitset.get(v).get(u) ||
+        // !childrenVlabel.contains(graph.vertices[u])) {
+        // continue;
+        // }
 
-                // if (info.closed[u][u]) { // backward edge
-                if (info.closedBitset.get(u).get(u)) { // backward edge
-                    if (!backtrack) {
-                        frags.add(new Pair<CodeFragment, SearchInfo>(
-                                new DfsCodeFragment((byte) -1, graph.edges[u][v], info.map[u]),
-                                new DfsSearchInfo(info, v, u)));
-                    }
-                } else { // forward edge
-                    frags.add(new Pair<CodeFragment, SearchInfo>(
-                            new DfsCodeFragment(graph.vertices[u], graph.edges[v][u], info.map[v]),
-                            new DfsSearchInfo(info, v, u)));
-                }
-            }
+        // // if (info.closed[u][u]) { // backward edge
+        // if (info.closedBitset.get(u).get(u)) { // backward edge
+        // if (!backtrack) {
+        // frags.add(new Pair<CodeFragment, SearchInfo>(
+        // new DfsCodeFragment((byte) -1, graph.edges[u][v], info.map[u]),
+        // new DfsSearchInfo(info, v, u)));
+        // }
+        // } else { // forward edge
+        // frags.add(new Pair<CodeFragment, SearchInfo>(
+        // new DfsCodeFragment(graph.vertices[u], graph.edges[v][u], info.map[v]),
+        // new DfsSearchInfo(info, v, u)));
+        // }
+        // }
 
-            info.rightmostPath.pop();
-            backtrack = true;
-        }
+        // info.rightmostPath.pop();
+        // backtrack = true;
+        // }
 
-        return frags;
+        // return frags;
+        return null;
     }
 
     @Override
