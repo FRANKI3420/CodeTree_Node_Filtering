@@ -5,7 +5,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.*;
 
 import codetree.vertexBased.AcgmCode;
@@ -61,57 +64,37 @@ public class CodeTree implements Serializable {
                 break;
 
             case "ppigo":
-                limDepth = 7;
+                limDepth = 5;
                 break;
         }
         delta = limDepth;
-        int loop = 1;
         for (Graph g : G) {
-            for (int l = 0; l < loop; l++) {
-                int start_vertice = rand.nextInt(g.order);
-
-                HashSet<Integer> targetVertices = g.getTargetVertices(limDepth, start_vertice);
-                // System.out.println(targetVertices.toString());
-                Graph inducedGraph = g.generateInducedGraph(targetVertices);
-                // code = impl.computeCanonicalCode(g, start_vertice, limDepth);
-                List<CodeFragment> code = impl.computeCanonicalCode(inducedGraph, 100);
-                root.addPath(code, g.id, false);
-            }
+            int start_vertice = rand.nextInt(g.order);
+            HashSet<Integer> targetVertices = g.getTargetVertices(limDepth,
+                    start_vertice);
+            Graph inducedGraph = g.generateInducedGraph(targetVertices);
+            List<CodeFragment> code = impl.computeCanonicalCode(inducedGraph, 100, limDepth);
+            root.addPath(code, g.id, false);
+            // System.out.println(code.toString());
         }
         index.write(dataset + "," + limDepth + ","
-                + String.format("%.6f", (double) (System.nanoTime() - time) / 1000 / 1000) +
+                + String.format("%.6f", (double) (System.nanoTime() - time) / 1000 / 1000 / 1000) +
                 ",");
+
+        int treesize = root.size();
 
         System.out.println("depth " + (limDepth));
         bw.write("limDepth" + (limDepth) + "\n");
-        System.out.println("Tree size: " + root.size());
-        System.out.println("addPathtoTree(ms): " + (System.nanoTime() - time) / 1000 /
-                1000);
-        bw.write("Tree size(original): " + root.size() + "\n");
-        bw.write("addPathtoTree(ms): " + String.format("%.6f", (double) (System.nanoTime() - time) / 1000 / 1000)
+        System.out.println("Tree size: " + treesize);
+        System.out.println("addPathtoTree(s): " + String.format("%.6f", (double) (System.nanoTime() - time) / 1000 /
+                1000 / 1000));
+        bw.write("addPathtoTree(s): " + String.format("%.6f", (double) (System.nanoTime() - time) / 1000 / 1000 / 1000)
                 + "\n");
 
         long start = System.nanoTime();
 
-        int treesize = root.size();
-
-        System.out.println("tree size (original): " + treesize);
         index.write(treesize + ",");
-
-        // List<Graph> leafGraphs = new ArrayList<>();
-        // root.getLeafGraph(impl, leafGraphs);
-        // inclusionCheck2(impl, leafGraphs);
-        // root.removeTree();
         treesize = root.size();
-
-        System.out.println("tree size (new): " + treesize);
-
-        bw.write("Tree size(new): " + treesize + "\n");
-        index.write(
-                treesize + "," + String.format("%.6f", (double) (System.nanoTime() - time) / 1000 / 1000) + ",");
-
-        System.out.println(
-                "remove node time :" + String.format("%.6f", (double) (System.nanoTime() - time) / 1000 / 1000));
 
         if (impl == new AcgmCode()) {
             root.addInfo();
@@ -122,25 +105,26 @@ public class CodeTree implements Serializable {
         start = System.nanoTime();
         System.out.println("グラフIDの計算中");
         inclusionCheck(impl, G);
-        bw.write("addIDtoTree(ms): " + String.format("%.3f", (double) (System.nanoTime() - start) / 1000 / 1000)
+        bw.write("addIDtoTree(s): " + String.format("%.3f", (double) (System.nanoTime() - start) / 1000 / 1000 / 1000)
                 + "\n");
-        System.out.println("\naddIDtoTree: " + (System.nanoTime() - start) / 1000 /
-                1000 + "msec");
+        System.out.println("\naddIDtoTree(s): " + (System.nanoTime() - start) / 1000 /
+                1000 / 1000);
         index.write(String.format("%.3f", (double) (System.nanoTime() - start) / 1000
-                / 1000));
+                / 1000 / 1000));
 
-        // try {
-        // String codetree = String.format("data_structure/%s/depth%d_structure.ser",
-        // dataset, limDepth);
-        // FileOutputStream fileOut = new FileOutputStream(codetree);
-        // ObjectOutputStream objout = new ObjectOutputStream(fileOut);
-        // objout.writeObject(this);
-        // objout.close();
-        // fileOut.close();
-        // System.out.println("データ構造がシリアライズされ、ファイルに保存されました。");
-        // } catch (IOException e) {
-        // e.printStackTrace();
-        // }
+        try {
+            String codetree = String.format("data_structure/%s.ser",
+                    dataset);
+            FileOutputStream fileOut = new FileOutputStream(codetree);
+            ObjectOutputStream objout = new ObjectOutputStream(fileOut);
+            objout.writeObject(this);
+            objout.close();
+            fileOut.close();
+            System.out.println("データ構造がシリアライズされ、ファイルに保存されました。");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public CodeTree(GraphCode impl, List<Graph> G, int b) {
@@ -168,11 +152,8 @@ public class CodeTree implements Serializable {
     }
 
     private void inclusionCheck(GraphCode impl, List<Graph> G) {
-        // root.addDescendantsLabels();
         for (Graph g : G) {
-            // g = g.shirinkNEC();
             if (g.id % 100000 == 0) {
-                // System.out.println();
             } else if (g.id % (G.size() / 2) == 0) {
                 System.out.print("*");
             } else if (g.id % (G.size() / 10) == 0) {
@@ -185,20 +166,20 @@ public class CodeTree implements Serializable {
         }
     }
 
-    private void inclusionCheck2(GraphCode impl, List<Graph> leafGraphs) {
+    // private void inclusionCheck2(GraphCode impl, List<Graph> leafGraphs) {
 
-        ArrayList<Integer> idList = new ArrayList<>();
-        ArrayList<Integer> removeIDList = new ArrayList<>();
+    // ArrayList<Integer> idList = new ArrayList<>();
+    // ArrayList<Integer> removeIDList = new ArrayList<>();
 
-        for (Graph g : leafGraphs) {
-            if (removeIDList.contains(g.id))
-                continue;
+    // for (Graph g : leafGraphs) {
+    // if (removeIDList.contains(g.id))
+    // continue;
 
-            idList.add(g.id);
-            root.pruningEquivalentNodes(g, impl, g.id, idList, removeIDList);
+    // idList.add(g.id);
+    // root.pruningEquivalentNodes(g, impl, g.id, idList, removeIDList);
 
-        }
-    }
+    // }
+    // }
 
     public List<Integer> supergraphSearch(Graph query) {
         return root.search(query, impl);

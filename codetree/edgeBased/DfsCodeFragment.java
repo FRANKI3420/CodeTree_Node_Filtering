@@ -1,9 +1,11 @@
 package codetree.edgeBased;
 
+import java.io.Serializable;
+
 import codetree.core.CodeFragment;
 
 class DfsCodeFragment
-        implements CodeFragment {
+        implements CodeFragment, Serializable {
     byte vLabel;
     byte eLabel;
     int parent;

@@ -21,7 +21,7 @@ public class IndexNode implements Serializable {
     protected boolean supNode;
     protected BitSet matchGraphIndicesBitSet;
     public HashSet<Byte> adjLabels;
-    protected int nodeID;
+    // protected int nodeID;
 
     protected int traverse_num = 0;
     protected LinkedHashMap<Integer, BitSet> labelFiltering;
@@ -111,7 +111,7 @@ public class IndexNode implements Serializable {
         supNode = false;
         count = 0;
         depth = 0;
-        nodeID = 0;
+        // nodeID = 0;
         adjLabels = new HashSet<>();
         traverse_num = 0;
         labelFiltering = new LinkedHashMap<>();
@@ -165,10 +165,10 @@ public class IndexNode implements Serializable {
     void addPath(List<CodeFragment> code, int graphIndex, boolean supergraphSearch) {
         final int height = code.size();
 
-        if (this.nodeID == 0) {
-            nodeIDcount++;
-            nodeID = nodeIDcount;
-        }
+        // if (this.nodeID == 0) {
+        // nodeIDcount++;
+        // nodeID = nodeIDcount;
+        // }
 
         if (supergraphSearch) {
             ++count;
@@ -651,78 +651,72 @@ public class IndexNode implements Serializable {
         return true;
     }
 
-    void getLeafGraph(GraphCode impl, List<Graph> leafGraphs) {
-        for (IndexNode m : children) {
-            if (m.children.size() == 0) {
-                List<CodeFragment> code = m.getCode();
-                Graph g = impl.generateGraph(code, m.nodeID);
-                leafGraphs.add(g);
-            } else {
-                m.getLeafGraph(impl, leafGraphs);
-            }
-        }
-    }
+    // void getLeafGraph(GraphCode impl, List<Graph> leafGraphs) {
+    // for (IndexNode m : children) {
+    // if (m.children.size() == 0) {
+    // List<CodeFragment> code = m.getCode();
+    // Graph g = impl.generateGraph(code, m.nodeID);
+    // leafGraphs.add(g);
+    // } else {
+    // m.getLeafGraph(impl, leafGraphs);
+    // }
+    // }
+    // }
 
-    List<CodeFragment> getCode() {
-        List<CodeFragment> code = new ArrayList<>();
-        for (IndexNode n = this; n != null; n = n.parent) {
-            code.add(n.frag);
-        }
-        Collections.reverse(code);
-        code.remove(0);
-        return code;
-    }
+    // List<CodeFragment> getCode() {
+    // List<CodeFragment> code = new ArrayList<>();
+    // for (IndexNode n = this; n != null; n = n.parent) {
+    // code.add(n.frag);
+    // }
+    // Collections.reverse(code);
+    // code.remove(0);
+    // return code;
 
-    void removeTree() {
-        if (removeNode.size() == 0)
-            return;
-        ArrayList<IndexNode> target = new ArrayList<>();
-        for (IndexNode m : children) {
-            target.add(m);
-        }
-        for (IndexNode m : target) {
-            if (removeNode.contains(m)) {
-                m.parent.children.remove(m.parent.children.indexOf(m));
-                for (IndexNode p = m.parent; p.children.size() < 1; p = p.parent) {
-                    if (p.depth == 1)
-                        continue;
-                    p.parent.children.remove(p.parent.children.indexOf(p));
-                }
-                removeNode.remove(removeNode.indexOf(m));
-            }
-            m.removeTree();
-        }
-    }
+    // ) == 0)
 
-    void pruningEquivalentNodes(Graph g, GraphCode impl, int leafID, ArrayList<Integer> idList,
-            ArrayList<Integer> removeIDList) {
-        List<Pair<IndexNode, SearchInfo>> infoList = impl.beginSearch(g, this);
-        for (Pair<IndexNode, SearchInfo> info : infoList) {
-            info.left.pruningEquivalentNodes(g, info.right, impl, leafID, idList, removeIDList);
-        }
-    }
+    // get = new ArrayList<
+    // ren) {
 
-    private void pruningEquivalentNodes(Graph g, SearchInfo info, GraphCode impl, int leafID, ArrayList<Integer> idList,
-            ArrayList<Integer> removeIDList) {
+    // a
+    // d
+    // rfr (Idif p
 
-        //// this node is leaf and & not needed by index because of same path
-        if (children.size() == 0 && depth != 1 && leafID != this.nodeID && !removeNode.contains(this)
-                && !idList.contains(this.nodeID)) {
-            removeIDList.add(this.nodeID);
-            removeNode.add(this);
-            return;
-        }
+    // .depth == 1)
 
-        List<Pair<CodeFragment, SearchInfo>> nextFrags = impl.enumerateFollowableFragments(g, info);
+    // continue;
+    // .children.remove(p.parent.children.indexOf(p));
 
-        for (IndexNode m : children) {
-            for (Pair<CodeFragment, SearchInfo> frag : nextFrags) {
-                if (frag.left.equals(m.frag)) {
-                    m.pruningEquivalentNodes(g, frag.right, impl, nodeID, idList, removeIDList);
-                }
-            }
-        }
-    }
+    // emove(removeNode.indexOf(m))
+
+    // d
+    // t
+    // d
+    // r
+
+    // private void pruningEquivalentNodes(Graph g, SearchInfo info, GraphCode impl,
+    // int leafID, ArrayList<Integer> idList,
+    // ArrayList<Integer> removeIDList) {
+
+    // //// this node is leaf and & not needed by index because of same path
+    // if (children.size() == 0 && depth != 1 && leafID != this.nodeID &&
+    // !removeNode.contains(this)
+    // && !idList.contains(this.nodeID)) {
+    // removeIDList.add(this.nodeID);
+    // removeNode.add(this);
+    // return;
+    // }
+
+    // List<Pair<CodeFragment, SearchInfo>> nextFrags =
+    // impl.enumerateFollowableFragments(g, info);
+
+    // for (IndexNode m : children) {
+    // for (Pair<CodeFragment, SearchInfo> frag : nextFrags) {
+    // if (frag.left.equals(m.frag)) {
+    // m.pruningEquivalentNodes(g, frag.right, impl, nodeID, idList, removeIDList);
+    // }
+    // }
+    // }
+    // }
 
     private void find_labelFiltering(List<Graph> G, int id, HashMap<Byte, Integer> qLabelMap) {
         for (IndexNode m : children) {
@@ -915,6 +909,7 @@ public class IndexNode implements Serializable {
                 // + ","
                 // + String.format("%.6f", filpertime)
                 + "\n");
+        bw_data.flush();
 
         deletedVsumPerq = 0;
         a_nodeFiltering_time = 0;
@@ -967,6 +962,8 @@ public class IndexNode implements Serializable {
                     + "," + q_trav_num
                     + "\n");
 
+            allbw.flush();
+
             br_whole.write(String.format("%.5f", FPratio / nonfail) + ","
                     + String.format("%.5f", FP / nonfail) + ","
                     + String.format("%.5f", SP / nonfail) + ","
@@ -1004,7 +1001,7 @@ public class IndexNode implements Serializable {
                     + "," + (size * nonfail - veq_Can_total) + "," + nonfail + "," + verfyNum
                     + "," + q_trav_num
                     + "\n");
-            ;
+            br_whole.flush();
 
             bw.write("(C)書き込み関数時間(ms): " + String.format("%.2f", (double) write_time /
                     1000 / 1000) + "\n");

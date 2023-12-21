@@ -39,9 +39,9 @@ class Main {
         try (BufferedWriter allfind = Files.newBufferedWriter(writeindex);
                 BufferedWriter br_whole = Files.newBufferedWriter(writewhole)) {
             allfind.write(
-                    "dataset,depth,addPathtoTree(ms),Tree_size,Tree_size(new),remove_time(ms),addIDtoTree(ms),Build_tree(ms)\n");
+                    "dataset,depth,addPathtoTree(s),Tree_size,addIDtoTree(s),Build_tree(s),memory cost\n");
 
-            for (datasetID = 0; datasetID <= 6; datasetID++) {
+            for (datasetID = 6; datasetID <= 6; datasetID++) {
                 br_whole.write(
                         "dataset,query_set,A/C,(G-C)/(G-A),SP,filtering_time(ms),verification_time(ms),query_time(ms),tree1_search_time(ms),node_fil_time(ms),|In(Q)|,|A(Q)|,|Can(Q)|,|F(Q)|,Num deleted Vertices,total deleted edges Num,codetree_filtime/fil_num,codetree_fil_num,allfil_num/allfil_time,allfil_num,nonfail,verify num,q_trav_num\n");
 
@@ -123,17 +123,31 @@ class Main {
                                 System.out.println("tree1");
                                 CodeTree tree = new CodeTree(graphCode, G, bw, dataset, allfind);
 
-                                bw.write("Build tree(ms): "
-                                        + String.format("%.6f", (double) (System.nanoTime() - start) / 1000 / 1000)
+                                bw.write("Build tree(s): "
+                                        + String.format("%.6f",
+                                                (double) (System.nanoTime() - start) / 1000 / 1000 / 1000)
                                         +
                                         "\n");
                                 allfind.write(","
-                                        + String.format("%.6f", (double) (System.nanoTime() - start) / 1000 / 1000)
-                                        + "\n");
+                                        + String.format("%.6f",
+                                                (double) (System.nanoTime() - start) / 1000 / 1000 / 1000));
 
-                                // if (true)
-                                // continue;
+                                System.out.println("Build Time(s): "
+                                        + String.format("%.6f",
+                                                (double) (System.nanoTime() - start) / 1000 / 1000 / 1000)
+                                        +
+                                        "\n");
 
+                                String codetree = String.format("data_structure/%s.ser",
+                                        dataset);
+                                File file = new File(codetree);
+                                long fileSize = file.length();
+                                System.out.println(
+                                        "File size: " + String.format("%.2f", (double) fileSize / 1024 / 1024) + " MB");
+                                allfind.write(","
+                                        + String.format("%.2f", (double) fileSize / 1024 / 1024) + "\n");
+
+                                allfind.flush();
                                 HashMap<Integer, ArrayList<String>> gMaps = makeGmaps(gfuFilename);
 
                                 int index = minedge;

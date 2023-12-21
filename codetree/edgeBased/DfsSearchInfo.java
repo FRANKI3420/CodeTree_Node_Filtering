@@ -1,11 +1,12 @@
 package codetree.edgeBased;
 
+import java.io.Serializable;
 import java.util.*;
 
 import codetree.core.*;
 
 class DfsSearchInfo
-        implements SearchInfo {
+        implements SearchInfo, Serializable {
     Stack<Integer> rightmostPath;
 
     // boolean[][] closed;

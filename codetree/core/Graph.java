@@ -595,6 +595,7 @@ public class Graph implements Serializable {
 
         return labelMap;
     }
+
 }
 
 // private Map<Byte, List<Integer>> makeVlabelMap() {
