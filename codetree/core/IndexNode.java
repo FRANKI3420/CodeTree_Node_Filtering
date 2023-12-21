@@ -250,14 +250,7 @@ public class IndexNode implements Serializable {
         // if (q.id == 0)
         // System.out.println("\n辿った節点数" + traverse_cou);
 
-        // if (q.id != 67 || mode != "bfs" || q.size != 32) {
-        // return new BitSet();
-        // }
-
         long start = System.nanoTime();
-
-        // HashMap<Byte, Integer> qLabelMap = q.getLabelMap();
-        // System.out.println(qLabelMap.toString());
 
         init_Bitset();
         root = this;
@@ -335,10 +328,9 @@ public class IndexNode implements Serializable {
         write_file_indiv(q, bw_data, Gsize);
 
         if (q.id == 99) {
-            System.out.println("辿った節点数" + q_trav_num);
             System.out.println("削除できた頂点数/|Can(Q)|:" + (double) query_per_nf_count / (doukeicount + lab_fil_num));
             System.out.println("query time:" + ":" + String.format("%.6f", ((double) search_time / 1000 / 1000 +
-                    verification_time + (double) (edgeFiltering_time + nodeFiltering_time) / 1000 / 1000) / 100));
+                    verification_time + (double) (nodeFiltering_time) / 1000 / 1000) / 100));
 
             write_file(allbw, bw, Gsize, br_whole);
             init_param();
@@ -419,26 +411,6 @@ public class IndexNode implements Serializable {
                 }
 
             }
-            bw2.close();
-        } catch (IOException e) {
-            System.exit(1);
-        }
-        write_time += System.nanoTime() - time;
-    }
-
-    private void write_file_for_Ver(HashMap<Integer, ArrayList<String>> gMaps) {
-        long time = System.nanoTime();
-        try (BufferedWriter bw2 = Files.newBufferedWriter(out)) {
-
-            for (int trueIndex = Can.nextSetBit(0); trueIndex != -1; trueIndex = Can
-                    .nextSetBit(++trueIndex)) {
-
-                can.add(trueIndex);
-                for (String line : gMaps.get(trueIndex)) {
-                    bw2.write(line + "\n");
-                }
-            }
-
             bw2.close();
         } catch (IOException e) {
             System.exit(1);
@@ -686,18 +658,6 @@ public class IndexNode implements Serializable {
         return true;
     }
 
-    void getLeafGraph(List<Graph> leafGraphs) {
-        for (IndexNode m : children) {
-            if (m.children.size() == 0) {
-                List<CodeFragment> code = m.getCode();
-                Graph g = generateGraph(code, m.nodeID);
-                leafGraphs.add(g);
-            } else {
-                m.getLeafGraph(leafGraphs);
-            }
-        }
-    }
-
     List<CodeFragment> getCode() {
         List<CodeFragment> code = new ArrayList<>();
         for (IndexNode n = this; n != null; n = n.parent) {
@@ -752,36 +712,6 @@ public class IndexNode implements Serializable {
                 removeNode.remove(removeNode.indexOf(m));
             }
             m.removeTree();
-        }
-    }
-
-    void pruningEquivalentNodes(Graph g, GraphCode impl, int leafID, ArrayList<Integer> idList,
-            ArrayList<Integer> removeIDList) {
-        List<Pair<IndexNode, SearchInfo>> infoList = impl.beginSearch(g, this);
-        for (Pair<IndexNode, SearchInfo> info : infoList) {
-            info.left.pruningEquivalentNodes(g, info.right, impl, leafID, idList, removeIDList);
-        }
-    }
-
-    private void pruningEquivalentNodes(Graph g, SearchInfo info, GraphCode impl, int leafID, ArrayList<Integer> idList,
-            ArrayList<Integer> removeIDList) {
-
-        //// this node is leaf and & not needed by index because of same path
-        if (children.size() == 0 && depth != 1 && leafID != this.nodeID && !removeNode.contains(this)
-                && !idList.contains(this.nodeID)) {
-            removeIDList.add(this.nodeID);
-            removeNode.add(this);
-            return;
-        }
-
-        List<Pair<CodeFragment, SearchInfo>> nextFrags = impl.enumerateFollowableFragments(g, info);
-
-        for (IndexNode m : children) {
-            for (Pair<CodeFragment, SearchInfo> frag : nextFrags) {
-                if (frag.left.equals(m.frag)) {
-                    m.pruningEquivalentNodes(g, frag.right, impl, nodeID, idList, removeIDList);
-                }
-            }
         }
     }
 
@@ -1065,7 +995,8 @@ public class IndexNode implements Serializable {
                     + "," + (size * nonfail - veq_Can_total) + "," + nonfail + "," + verfyNum
                     + "," + q_trav_num
                     + "\n");
-            ;
+            allbw.flush();
+            br_whole.flush();
 
             bw.write("(C)書き込み関数時間(ms): " + String.format("%.2f", (double) write_time /
                     1000 / 1000) + "\n");

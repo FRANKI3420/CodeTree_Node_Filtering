@@ -39,13 +39,12 @@ class Main {
         try (BufferedWriter allfind = Files.newBufferedWriter(writeindex);
                 BufferedWriter br_whole = Files.newBufferedWriter(writewhole)) {
             allfind.write(
-                    "dataset,depth,addPathtoTree(ms),Tree_size,Tree_size(new),remove_time(ms),addIDtoTree(ms),Build_tree(ms)\n");
-            br_whole.write(
-                    "dataset,query_set,A/C,(G-C)/(G-A),SP,filtering_time(ms),verification_time(ms),query_time(ms),tree1_search_time(ms),node_fil_time(ms),|In(Q)|,|A(Q)|,|Can(Q)|,|F(Q)|,Num deleted Vertices,total deleted edges Num,codetree_filtime/fil_num,codetree_fil_num,allfil_num/allfil_time,allfil_num,nonfail,verify num,q_trav_num\n");
+                    "dataset,depth,addPathtoTree(s),Tree_size,addIDtoTree(s),Build_tree(s),memory cost\n");
 
             for (datasetID = 0; datasetID <= 5; datasetID++) {
+                br_whole.write(
+                        "dataset,query_set,A/C,(G-C)/(G-A),SP,filtering_time(ms),verification_time(ms),query_time(ms),tree1_search_time(ms),node_fil_time(ms),|In(Q)|,|A(Q)|,|Can(Q)|,|F(Q)|,Num deleted Vertices,total deleted edges Num,codetree_filtime/fil_num,codetree_fil_num,allfil_num/allfil_time,allfil_num,nonfail,verify num,q_trav_num\n");
 
-                boolean nec = false;
                 if (datasetID < 0 || datasetID > 6) {
                     System.out.println("無効なデータセットIDです");
                     System.exit(0);
@@ -116,121 +115,104 @@ class Main {
 
                             long start = System.nanoTime();
 
-                            if (!nec) {
+                            // for (int i = 0; i < 10; i++) {
+                            System.out.println("tree");
+                            CodeTree tree = new CodeTree(graphCode, G, bw, dataset, allfind);
 
-                                // for (int i = 0; i < 10; i++) {
-                                System.out.println("tree1");
-                                CodeTree tree = new CodeTree(graphCode, G, bw, dataset, allfind);
+                            bw.write("Build tree(s): "
+                                    + String.format("%.6f",
+                                            (double) (System.nanoTime() - start) / 1000 / 1000 / 1000)
+                                    +
+                                    "\n");
+                            allfind.write(","
+                                    + String.format("%.6f",
+                                            (double) (System.nanoTime() - start) / 1000 / 1000 / 1000)
+                                    + ",");
+                            System.out.println("Build Time(s): "
+                                    + String.format("%.6f",
+                                            (double) (System.nanoTime() - start) / 1000 / 1000 / 1000)
+                                    + ",");
 
-                                bw.write("Build tree(ms): "
-                                        + String.format("%.6f", (double) (System.nanoTime() - start) / 1000 / 1000)
-                                        +
-                                        "\n");
-                                allfind.write(","
-                                        + String.format("%.6f", (double) (System.nanoTime() - start) / 1000 / 1000)
-                                        + "\n");
+                            String codetree = String.format("data_structure/%s.ser",
+                                    dataset);
+                            File file = new File(codetree);
+                            long fileSize = file.length();
+                            System.out.println(
+                                    "File size: " + String.format("%.2f", (double) fileSize / 1024 / 1024) + " MB");
+                            allfind.write(String.format("%.2f", (double) fileSize / 1024 / 1024) + "\n");
 
-                                // if (true)
-                                // continue;
+                            allfind.flush();
+                            // if (true)
+                            // continue;
 
-                                HashMap<Integer, ArrayList<String>> gMaps = makeGmaps(gfuFilename);
+                            HashMap<Integer, ArrayList<String>> gMaps = makeGmaps(gfuFilename);
 
-                                int index = minedge;
-                                String mode = null;
-                                String data_out = null;
-                                int[] adjust = new int[Q.size() / 2];
-                                int count = 0;
-                                int count2 = 0;
+                            int index = minedge;
+                            String mode = null;
+                            String data_out = null;
+                            int[] adjust = new int[Q.size()];
+                            int count = 0;
+                            int count2 = 0;
 
-                                for (ArrayList<Pair<Integer, Graph>> Q_set : Q) {
+                            for (ArrayList<Pair<Integer, Graph>> Q_set : Q) {
 
-                                    // if (index <= maxedge) {
-                                    // index *= 2;
-                                    // continue;
-                                    // }
-                                    // if (index > maxedge) {
-                                    // index *= 2;
-                                    // continue;
-                                    // }
-                                    // if (datasetID == 6 && index != 32) {
-                                    // index *= 2;
-                                    // continue;
-                                    // }
-
-                                    if ((datasetID == 6 && index == 64)) {
-                                        index *= 2;
-                                        continue;
-                                    }
-                                    // if ((datasetID == 3 && index == 64) || (datasetID == 6 && index == 32)
-                                    // || (datasetID == 6 && index == 64)) {
-                                    // index *= 2;
-                                    // continue;
-                                    // }
-
-                                    // if ((datasetID == 3 && index >= 32) || (datasetID == 6 && index >= 32)
-                                    // || index >= 128) {
-                                    // index *= 2;
-                                    // continue;
-                                    // }
-                                    // if ((datasetID == 6 && index >= 32)) {
-                                    // index *= 2;
-                                    // continue;
-                                    // }
-
-                                    if (index <= maxedge) {
-                                        adjust[count++] = index;
-                                        System.out.println("\nQ" + index + "R");
-                                        bw.write("Q" + index + "R\n");
-                                        bw2.write("Q" + index + "R\n");
-                                        allbw.write(dataset + ",Q" + index + "R,");
-                                        br_whole.write(dataset + ",Q" + index + "R,");
-                                        data_out = String.format("result/%s_%dR_data.csv", dataset,
-                                                index);
-                                        mode = "randomwalk";
-                                    } else {
-                                        int size = adjust[count2++];
-
-                                        System.out.println("\nQ" + size + "B");
-                                        bw.write("Q" + size + "B\n");
-                                        bw2.write("Q" + size + "B\n");
-                                        allbw.write(dataset + ",Q" + size + "B,");
-                                        br_whole.write(dataset + ",Q" + size + "B,");
-                                        data_out = String.format("result/%s_%dB_data.csv", dataset,
-                                                size);
-                                        mode = "bfs";
-                                    }
-
-                                    try (BufferedWriter bwout = new BufferedWriter(
-                                            new OutputStreamWriter(new FileOutputStream(data_out), "UTF-8"));) {
-
-                                        start = System.nanoTime();
-
-                                        for (Pair<Integer, Graph> q : Q_set) {
-                                            if (q.left == 0) {
-                                                System.out.print("");
-                                            } else if (q.left % 50 == 0) {
-                                                System.out.print("*");
-                                            } else if (q.left % 10 == 0) {
-                                                System.out.print(".");
-                                            }
-                                            BitSet result = tree.subgraphSearch(q.right, bw, datasetSize, mode,
-                                                    dataset,
-                                                    bwout, allbw, G, q.right.size, gMaps, br_whole);
-
-                                            bw2.write(
-                                                    q.left.toString() + " " + result.cardinality() + "個"
-                                                            + result.toString()
-                                                            + "\n");
-                                        }
-                                        final long time = System.nanoTime() - start;
-                                        bw.write("(A)*100+(C)+(D)+(E)+(α) 合計処理時間(ms): " + (time / 1000 / 1000) +
-                                                "\n");
-                                        index *= 2;
-                                        Q_set = null;
-                                    }
-                                    bw.write("*********************************\n");
+                                adjust[count++] = index;
+                                if ((datasetID == 6 && index == 64)) {
+                                    index *= 2;
+                                    continue;
                                 }
-                                // }
+
+                                if (index <= maxedge) {
+                                    System.out.println("\nQ" + index + "R");
+                                    bw.write("Q" + index + "R\n");
+                                    bw2.write("Q" + index + "R\n");
+                                    allbw.write(dataset + ",Q" + index + "R,");
+                                    br_whole.write(dataset + ",Q" + index + "R,");
+                                    data_out = String.format("result/%s_%dR_data.csv", dataset,
+                                            index);
+                                    mode = "randomwalk";
+                                } else {
+                                    int size = adjust[count2++];
+
+                                    System.out.println("\nQ" + size + "B");
+                                    bw.write("Q" + size + "B\n");
+                                    bw2.write("Q" + size + "B\n");
+                                    allbw.write(dataset + ",Q" + size + "B,");
+                                    br_whole.write(dataset + ",Q" + size + "B,");
+                                    data_out = String.format("result/%s_%dB_data.csv", dataset,
+                                            size);
+                                    mode = "bfs";
+                                }
+
+                                try (BufferedWriter bwout = new BufferedWriter(
+                                        new OutputStreamWriter(new FileOutputStream(data_out), "UTF-8"));) {
+
+                                    start = System.nanoTime();
+
+                                    for (Pair<Integer, Graph> q : Q_set) {
+                                        if (q.left == 0) {
+                                            System.out.print("");
+                                        } else if (q.left % 50 == 0) {
+                                            System.out.print("*");
+                                        } else if (q.left % 10 == 0) {
+                                            System.out.print(".");
+                                        }
+                                        BitSet result = tree.subgraphSearch(q.right, bw, datasetSize, mode,
+                                                dataset,
+                                                bwout, allbw, G, q.right.size, gMaps, br_whole);
+
+                                        bw2.write(
+                                                q.left.toString() + " " + result.cardinality() + "個"
+                                                        + result.toString()
+                                                        + "\n");
+                                    }
+                                    final long time = System.nanoTime() - start;
+                                    bw.write("(A)*100+(C)+(D)+(E)+(α) 合計処理時間(ms): " + (time / 1000 / 1000) +
+                                            "\n");
+                                    index *= 2;
+                                    Q_set = null;
+                                }
+                                bw.write("*********************************\n");
                             }
                         }
 
