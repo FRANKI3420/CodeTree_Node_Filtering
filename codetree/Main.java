@@ -63,29 +63,39 @@ class Main {
 
                     List<Graph> G = SdfFileReader.readFile_gfu(Paths.get(gfuFilename));
 
-                    for (int numOfEdge = minedge; numOfEdge <= maxedge; numOfEdge *= 2) {
-                        ArrayList<Pair<Integer, Graph>> qset = new ArrayList<>();
-                        for (int i = 0; i < querysize; i++) {
-                            q_gfuFilename = String.format("Query/%s/randomwalk/%d/q%d.gfu", dataset,
-                                    numOfEdge, i);
-                            Graph q = SdfFileReader.readFileQuery_gfu(Paths.get(q_gfuFilename));
-                            qset.add(new Pair<Integer, Graph>(i, q));
-                        }
-                        // query_search(qset, numOfEdge, "R");
-                        Q.add(qset);
+                    ArrayList<Pair<Integer, Graph>> queryR = new ArrayList<>();
+                    ArrayList<Pair<Integer, Graph>> queryB = new ArrayList<>();
+                    for (int i = minedge; i <= maxedge; i *= 2) {
+                        // edege means order
+                        queryR = setQuery_RandomWalk(G, querysize, i);
+                        // queryB = setQuery_BFWalk(G, querysize, i);
+                        query_search(queryR, i, "R");
+                        Q.add(queryR);
                     }
 
-                    for (int numOfEdge = minedge; numOfEdge <= maxedge; numOfEdge *= 2) {
-                        ArrayList<Pair<Integer, Graph>> qset = new ArrayList<>();
-                        for (int i = 0; i < querysize; i++) {
-                            q_gfuFilename = String.format("Query/%s/bfs/%d/q%d.gfu", dataset, numOfEdge,
-                                    i);
-                            Graph q = SdfFileReader.readFileQuery_gfu(Paths.get(q_gfuFilename));
-                            qset.add(new Pair<Integer, Graph>(i, q));
-                        }
-                        // query_search(qset, numOfEdge, "B");
-                        Q.add(qset);
-                    }
+                    // for (int numOfEdge = minedge; numOfEdge <= maxedge; numOfEdge *= 2) {
+                    // ArrayList<Pair<Integer, Graph>> qset = new ArrayList<>();
+                    // for (int i = 0; i < querysize; i++) {
+                    // q_gfuFilename = String.format("Query/%s/randomwalk/%d/q%d.gfu", dataset,
+                    // numOfEdge, i);
+                    // Graph q = SdfFileReader.readFileQuery_gfu(Paths.get(q_gfuFilename));
+                    // qset.add(new Pair<Integer, Graph>(i, q));
+                    // }
+                    // // query_search(qset, numOfEdge, "R");
+                    // Q.add(qset);
+                    // }
+
+                    // for (int numOfEdge = minedge; numOfEdge <= maxedge; numOfEdge *= 2) {
+                    // ArrayList<Pair<Integer, Graph>> qset = new ArrayList<>();
+                    // for (int i = 0; i < querysize; i++) {
+                    // q_gfuFilename = String.format("Query/%s/bfs/%d/q%d.gfu", dataset, numOfEdge,
+                    // i);
+                    // Graph q = SdfFileReader.readFileQuery_gfu(Paths.get(q_gfuFilename));
+                    // qset.add(new Pair<Integer, Graph>(i, q));
+                    // }
+                    // // query_search(qset, numOfEdge, "B");
+                    // Q.add(qset);
+                    // }
 
                     System.out.println("G size: " + G.size());
 
@@ -515,7 +525,8 @@ class Main {
         }
     }
 
-    private static ArrayList<Pair<Integer, Graph>> setQuery_RandomWalk(List<Graph> G, int querysize, int numOfEdge) {
+    private static ArrayList<Pair<Integer, Graph>> setQuery_RandomWalk(List<Graph> G, int querysize, int numOfNodes)
+            throws IOException {
         ArrayList<Pair<Integer, Graph>> Q = new ArrayList<>(querysize);
         int count = 0;
         double V = 0;
@@ -523,20 +534,26 @@ class Main {
         double sigma = 0;
         rand = new Random(1);
 
-        while (count < querysize) {
-            Graph g;
-            while (true) {
-                int random = rand.nextInt(G.size());
-                g = G.get(random);
-                if (g.size() >= numOfEdge && g.isConnected())
-                    break;
+        Path file = Paths.get("query.gfu");
+        try (BufferedWriter bw = Files.newBufferedWriter(file)) {
+            while (count < querysize) {
+                Graph g;
+                while (true) {
+                    int random = rand.nextInt(G.size());
+                    g = G.get(random);
+                    if (g.order() >= numOfNodes)
+                        break;
+                }
+                Graph q = g.createQuery_ram(numOfNodes, count);
+                if (q == null)
+                    continue;
+                q.writeGraph2Gfu(bw);
+                V += q.order();
+                e += q.size();
+                sigma += q.labels();
+                Q.add(new Pair<Integer, Graph>(count, q));
+                count++;
             }
-            Graph q = g.set_ramQ(numOfEdge);
-            V += q.order();
-            e += q.size();
-            sigma += q.labels();
-            Q.add(new Pair<Integer, Graph>(count, q));
-            count++;
         }
         // System.out.println("Q_"+ numOfEdge + "S |V| per q " + V/querysize );
         // System.out.println("Q_"+ numOfEdge +"S |E| per q " + e/querysize );

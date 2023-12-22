@@ -352,6 +352,58 @@ public class Graph implements Serializable {
         return new Graph(id, newvertices, newedges);
     }
 
+    public Graph createQuery_ram(int numOfNodes, int id) {
+        Random rand = new Random(0);
+        final int n = this.order();
+        if (n == numOfNodes) {
+            return this;
+        }
+        Stack<Integer> past = new Stack<>();
+        int count = 0;
+        int[] map = new int[numOfNodes];
+        int nextV = rand.nextInt(n);
+        map[count++] = nextV;
+        boolean[] close = new boolean[order];
+        close[nextV] = true;
+        past.push(nextV);
+        while (!past.isEmpty()) {
+            int v = past.peek();
+            List<Integer> next = new ArrayList<>();
+            for (int u : adjList[v]) {
+                if (!close[u]) {
+                    next.add(u);
+                }
+            }
+            if (next.size() > 0) {
+                nextV = next.get(rand.nextInt(next.size()));
+                map[count++] = nextV;
+                close[nextV] = true;
+                past.push(nextV);
+                if (count == numOfNodes)
+                    break;
+            } else {
+                past.pop();
+            }
+        }
+        if (count != numOfNodes) {
+            return null;
+        }
+        byte[] newVertices = new byte[numOfNodes];
+        byte[][] newEdeges = new byte[numOfNodes][numOfNodes];
+        for (int i = 0; i < count; i++) {
+            newVertices[i] = vertices[map[i]];
+        }
+        for (int i = 0; i < count; i++) {
+            for (int j = 0; j < count; j++) {
+                if (edges[map[i]][map[j]] == 1) {
+                    newEdeges[i][j] = 1;
+                }
+            }
+        }
+        return new Graph(id, newVertices, newEdeges);
+
+    }
+
     public void writeGraph2Gfu(BufferedWriter bw2) throws IOException {
 
         bw2.write("#" + id + "\n");
