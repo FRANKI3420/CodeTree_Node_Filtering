@@ -22,6 +22,7 @@ public class IndexNode implements Serializable {
     protected BitSet matchGraphIndicesBitSet;
     public HashSet<Byte> adjLabels;
     // protected int nodeID;
+    protected boolean traverseNecessity;
 
     protected int traverse_num = 0;
     protected LinkedHashMap<Integer, BitSet> labelFiltering;
@@ -116,6 +117,8 @@ public class IndexNode implements Serializable {
         traverse_num = 0;
         labelFiltering = new LinkedHashMap<>();
         childEdgeFrag = new BitSet();
+        traverseNecessity = true;
+
     }
 
     int size() {
@@ -562,6 +565,22 @@ public class IndexNode implements Serializable {
 
     static int traverse_cou = 0;
 
+    void initTraverseNecessity() {
+        // traverseNecessity = true;
+        // g_traverse_num = 0;
+
+        // for (IndexNode m : children) {
+        // m.initTraverseNecessity();
+        // }
+        for (IndexNode m : initTraverseNecessity) {
+            m.traverseNecessity = true;
+        }
+        initTraverseNecessity.clear();
+
+    }
+
+    static ArrayList<IndexNode> initTraverseNecessity = new ArrayList<>();
+
     void addIDtoTree(Graph g, GraphCode impl, int id, BitSet gLabels) {
         matchGraphIndicesBitSet.set(id, true);
         List<Pair<IndexNode, SearchInfo>> infoList = impl.beginSearch(g, this);
@@ -590,9 +609,17 @@ public class IndexNode implements Serializable {
         // return;
         // }
 
-        if (backtrackJudge_dfs(g, id))
+        if (backtrackJudge_dfs(g, id)) {
+            traverseNecessity = false;
+            initTraverseNecessity.add(this);
             return;
+        }
 
+        for (IndexNode m : children) {
+            if (!m.traverseNecessity)
+                continue;
+            adjLabels.add(m.frag.getVlabel());
+        }
         // if (getNoTraversNode(g, id, gLabels))
         // return;
 
@@ -602,7 +629,11 @@ public class IndexNode implements Serializable {
         List<Pair<CodeFragment, SearchInfo>> nextFrags = impl.enumerateFollowableFragments(g, info, adjLabels);
 
         for (IndexNode m : children) {
+            if (!m.traverseNecessity)
+                continue;
             for (Pair<CodeFragment, SearchInfo> frag : nextFrags) {
+                if (!m.traverseNecessity)
+                    break;
                 if (frag.left.contains(m.frag)) {
                     m.addIDtoTree(g, frag.right, impl, g.id, gLabels);
                 }

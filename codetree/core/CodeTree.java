@@ -162,6 +162,8 @@ public class CodeTree implements Serializable {
             // BitSet gLabels = g.labels_Set();
             // root.addIDtoTree(g, impl, g.id);
             root.addIDtoTree(g, impl, g.id, null);
+            root.initTraverseNecessity();
+
             g.edges = null;
         }
     }
@@ -192,6 +194,7 @@ public class CodeTree implements Serializable {
         return root.subsearch(query, impl, size, bw, mode, dataset, bwout, allbw, G, "Query", qsize, gMaps, delta,
                 br_whole);
     }
+
 }
 
 // private void shirinkNEC(List<Graph> G) {
