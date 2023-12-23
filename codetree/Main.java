@@ -41,7 +41,7 @@ class Main {
             allfind.write(
                     "dataset,depth,addPathtoTree(s),Tree_size,addIDtoTree(s),Build_tree(s),memory cost\n");
 
-            for (datasetID = 0; datasetID <= 6; datasetID++) {
+            for (datasetID = 0; datasetID <= 0; datasetID++) {
                 br_whole.write(
                         "dataset,query_set,A/C,(G-C)/(G-A),SP,filtering_time(ms),verification_time(ms),query_time(ms),tree1_search_time(ms),node_fil_time(ms),|In(Q)|,|A(Q)|,|Can(Q)|,|F(Q)|,Num deleted Vertices,total deleted edges Num,codetree_filtime/fil_num,codetree_fil_num,allfil_num/allfil_time,allfil_num,nonfail,verify num,q_trav_num\n");
 
@@ -59,14 +59,24 @@ class Main {
                     List<ArrayList<Pair<Integer, Graph>>> Q = new ArrayList<>();
                     final int querysize = 100;
                     final int minedge = 4;
-                    final int maxedge = 64;
+                    final int maxedge = 32;
 
                     List<Graph> G = SdfFileReader.readFile_gfu(Paths.get(gfuFilename));
+
+                    // ArrayList<Pair<Integer, Graph>> queryR = new ArrayList<>();
+                    // ArrayList<Pair<Integer, Graph>> queryB = new ArrayList<>();
+                    // for (int i = minedge; i <= maxedge; i *= 2) {
+                    // // edege means order
+                    // queryR = setQuery_RandomWalk(G, querysize, i);
+                    // // queryB = setQuery_BFWalk(G, querysize, i);
+                    // query_search(queryR, i, "R");
+                    // Q.add(queryR);
+                    // }
 
                     for (int numOfEdge = minedge; numOfEdge <= maxedge; numOfEdge *= 2) {
                         ArrayList<Pair<Integer, Graph>> qset = new ArrayList<>();
                         for (int i = 0; i < querysize; i++) {
-                            q_gfuFilename = String.format("Query/%s/randomwalk/%d/q%d.gfu", dataset,
+                            q_gfuFilename = String.format("Query/%s/sub/%d/q%d.gfu", dataset,
                                     numOfEdge, i);
                             Graph q = SdfFileReader.readFileQuery_gfu(Paths.get(q_gfuFilename));
                             qset.add(new Pair<Integer, Graph>(i, q));
@@ -78,7 +88,7 @@ class Main {
                     for (int numOfEdge = minedge; numOfEdge <= maxedge; numOfEdge *= 2) {
                         ArrayList<Pair<Integer, Graph>> qset = new ArrayList<>();
                         for (int i = 0; i < querysize; i++) {
-                            q_gfuFilename = String.format("Query/%s/bfs/%d/q%d.gfu", dataset, numOfEdge,
+                            q_gfuFilename = String.format("Query/%s/induced/%d/q%d.gfu", dataset, numOfEdge,
                                     i);
                             Graph q = SdfFileReader.readFileQuery_gfu(Paths.get(q_gfuFilename));
                             qset.add(new Pair<Integer, Graph>(i, q));
@@ -194,25 +204,25 @@ class Main {
 
                                     if (index <= maxedge) {
                                         adjust[count++] = index;
-                                        System.out.println("\nQ" + index + "R");
-                                        bw.write("Q" + index + "R\n");
-                                        bw2.write("Q" + index + "R\n");
-                                        allbw.write(dataset + ",Q" + index + "R,");
-                                        br_whole.write(dataset + ",Q" + index + "R,");
-                                        data_out = String.format("result/%s_%dR_data.csv", dataset,
+                                        System.out.println("\nQ" + index + "S");
+                                        bw.write("Q" + index + "S\n");
+                                        bw2.write("Q" + index + "S\n");
+                                        allbw.write(dataset + ",Q" + index + "S,");
+                                        br_whole.write(dataset + ",Q" + index + "S,");
+                                        data_out = String.format("result/%s_%dS_data.csv", dataset,
                                                 index);
-                                        mode = "randomwalk";
+                                        mode = "sub";
                                     } else {
                                         int size = adjust[count2++];
 
-                                        System.out.println("\nQ" + size + "B");
-                                        bw.write("Q" + size + "B\n");
-                                        bw2.write("Q" + size + "B\n");
-                                        allbw.write(dataset + ",Q" + size + "B,");
-                                        br_whole.write(dataset + ",Q" + size + "B,");
-                                        data_out = String.format("result/%s_%dB_data.csv", dataset,
+                                        System.out.println("\nQ" + size + "I");
+                                        bw.write("Q" + size + "I\n");
+                                        bw2.write("Q" + size + "I\n");
+                                        allbw.write(dataset + ",Q" + size + "I,");
+                                        br_whole.write(dataset + ",Q" + size + "I,");
+                                        data_out = String.format("result/%s_%dI_data.csv", dataset,
                                                 size);
-                                        mode = "bfs";
+                                        mode = "induced";
                                     }
 
                                     try (BufferedWriter bwout = new BufferedWriter(
@@ -230,7 +240,7 @@ class Main {
                                             }
                                             BitSet result = tree.subgraphSearch(q.right, bw, datasetSize, mode,
                                                     dataset,
-                                                    bwout, allbw, G, q.right.size, gMaps, br_whole);
+                                                    bwout, allbw, G, q.right.order, gMaps, br_whole);
 
                                             bw2.write(
                                                     q.left.toString() + " " + result.cardinality() + "個"
@@ -459,93 +469,45 @@ class Main {
         System.out.println();
     }
 
-    private static void print_q(List<ArrayList<Pair<Integer, Graph>>> Q) {
-        Path out = Paths.get("queryput.txt");
-        int index = 8;
-        try (BufferedWriter bw = Files.newBufferedWriter(out)) {
-            for (ArrayList<Pair<Integer, Graph>> Q_set : Q) {
-                if (index <= 32)
-                    bw.write("Q_" + index + "R\n");
-                else
-                    bw.write("Q_" + index / 16 + "B\n");
-                // bw.write("*\n");
-                for (Pair<Integer, Graph> q : Q_set) {
-                    bw.write(q.left + "\n");
-                    for (int i = 0; i < q.right.vertices.length; i++) {
-                        bw.write(q.right.vertices[i] + " ");
-                    }
-                    bw.write("\n");
-                    for (int i = 0; i < q.right.vertices.length; i++) {
-                        for (int j = 0; j < q.right.vertices.length; j++) {
-                            bw.write(q.right.edges[i][j] + " ");
-                        }
-                        bw.write("\n");
-                    }
-                }
-                index *= 2;
-            }
-        } catch (IOException e) {
-            System.exit(1);
-        }
-    }
+    // private static ArrayList<Pair<Integer, Graph>>
+    // setQuery_RandomWalk(List<Graph> G, int querysize, int numOfNodes)
+    // throws IOException {
+    // ArrayList<Pair<Integer, Graph>> Q = new ArrayList<>(querysize);
+    // int count = 0;
+    // double V = 0;
+    // double e = 0;
+    // double sigma = 0;
+    // rand = new Random(1);
 
-    private static void print_g(List<Graph> G) {
-        Path out = null;
-        out = Paths.get("Gput.txt");
-
-        int id = 0;
-
-        try (BufferedWriter bw = Files.newBufferedWriter(out)) {
-            for (Graph g : G) {
-                bw.write(id + "\n");
-                for (int i = 0; i < g.vertices.length; i++) {
-                    bw.write(g.vertices[i] + " ");
-                }
-                bw.write("\n");
-                for (int i = 0; i < g.vertices.length; i++) {
-                    for (int j = 0; j < g.vertices.length; j++) {
-                        bw.write(g.edges[i][j] + " ");
-                    }
-                    bw.write("\n");
-                }
-                id++;
-            }
-        } catch (IOException e) {
-            System.exit(1);
-        }
-    }
-
-    private static ArrayList<Pair<Integer, Graph>> setQuery_RandomWalk(List<Graph> G, int querysize, int numOfEdge) {
-        ArrayList<Pair<Integer, Graph>> Q = new ArrayList<>(querysize);
-        int count = 0;
-        double V = 0;
-        double e = 0;
-        double sigma = 0;
-        rand = new Random(1);
-
-        while (count < querysize) {
-            Graph g;
-            while (true) {
-                int random = rand.nextInt(G.size());
-                g = G.get(random);
-                if (g.size() >= numOfEdge && g.isConnected())
-                    break;
-            }
-            Graph q = g.set_ramQ(numOfEdge);
-            V += q.order();
-            e += q.size();
-            sigma += q.labels();
-            Q.add(new Pair<Integer, Graph>(count, q));
-            count++;
-        }
-        // System.out.println("Q_"+ numOfEdge + "S |V| per q " + V/querysize );
-        // System.out.println("Q_"+ numOfEdge +"S |E| per q " + e/querysize );
-        // System.out.println("Q_"+ numOfEdge +"S d per q " +
-        // String.format("%.2f",e*2/V));
-        // System.out.println("Q_"+ numOfEdge +"S |Σ| per q " + sigma/querysize );
-        // System.out.println();
-        return Q;
-    }
+    // Path file = Paths.get("query.gfu");
+    // try (BufferedWriter bw = Files.newBufferedWriter(file)) {
+    // while (count < querysize) {
+    // Graph g;
+    // while (true) {
+    // int random = rand.nextInt(G.size());
+    // g = G.get(random);
+    // if (g.order() >= numOfNodes)
+    // break;
+    // }
+    // Graph q = g.createQuery_ram(numOfNodes, count);
+    // if (q == null)
+    // continue;
+    // q.writeGraph2Gfu(bw);
+    // V += q.order();
+    // e += q.size();
+    // sigma += q.labels();
+    // Q.add(new Pair<Integer, Graph>(count, q));
+    // count++;
+    // }
+    // }
+    // // System.out.println("Q_"+ numOfEdge + "S |V| per q " + V/querysize );
+    // // System.out.println("Q_"+ numOfEdge +"S |E| per q " + e/querysize );
+    // // System.out.println("Q_"+ numOfEdge +"S d per q " +
+    // // String.format("%.2f",e*2/V));
+    // // System.out.println("Q_"+ numOfEdge +"S |Σ| per q " + sigma/querysize );
+    // // System.out.println();
+    // return Q;
+    // }
 
     private static ArrayList<Pair<Integer, Graph>> setQuery_BFWalk(List<Graph> G, int querysize, int numOfEdge) {
         ArrayList<Pair<Integer, Graph>> Q = new ArrayList<>(querysize);
