@@ -278,6 +278,8 @@ public class IndexNode implements Serializable {
             a_in_count = In.cardinality();
             in_count += a_in_count;
             result.or(In);
+            a_fil_count = Gsize - Can.cardinality();
+
             if (!traverse) {
                 Can.clear();
             } else {
@@ -288,6 +290,7 @@ public class IndexNode implements Serializable {
                 info.left.subsearch2(q, info.right, impl);
             }
             a_in_count = 0;
+            a_fil_count = Gsize - Can.cardinality();
         }
 
         infoList = null;
@@ -296,7 +299,6 @@ public class IndexNode implements Serializable {
 
         if (Can.cardinality() != 0) {
             verfyNum++;
-            a_fil_count = Gsize - Can.cardinality();
             fil_count += a_fil_count;
             a_filterTime = System.nanoTime() - start;
             search_time += a_filterTime;// filtering time
@@ -315,7 +317,6 @@ public class IndexNode implements Serializable {
 
             verification_VEQ(directory, dataset, mode, q, qsize, Gsize);
         } else {
-            a_fil_count = Gsize - Can.cardinality();
             fil_count += a_fil_count;
             doukeicount += Can.cardinality();
             a_filterTime = System.nanoTime() - start;
