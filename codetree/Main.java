@@ -111,11 +111,6 @@ class Main {
                     try (BufferedWriter bw2 = Files.newBufferedWriter(out);
                             BufferedWriter allbw = Files.newBufferedWriter(all);) {
                         allbw.write(
-                                // "dataset,query_set,FP_ratio,(G-C)/(G-A),SP,filtering_time(ms),verification_time(ms),query_time(ms),codetree_filtime/fil_num,codetree_fil_num,allfil_num/allfil_time,allfil_num,nonfail\n");
-                                // "dataset,query_set,FP_ratio,A/C,SP,filtering_time(ms),verification_time(ms),query_time(ms),tree1_search_time(ms),tree2_search_time(ms),edge_fil_time(ms),node_fil_time(ms),|A(Q)|,|Can(Q)|,Number
-                                // of graphs to delete,Number of vertices removed,Num Deleted Edges,total number
-                                // of deleted
-                                // edges,codetree_filtime/fil_num,codetree_fil_num,allfil_num/allfil_time,allfil_num,nonfail\n");
                                 "dataset,query_set,A/C,(G-C)/(G-A),SP,filtering_time(ms),verification_time(ms),query_time(ms),tree1_search_time(ms),node_fil_time(ms),|In(Q)|,|A(Q)|,|Can(Q)|,|F(Q)|,Num deleted Vertices,total deleted edges Num,codetree_filtime/fil_num,codetree_fil_num,allfil_num/allfil_time,allfil_num,nonfail,verify num,q_trav_num\n");
 
                         System.out.println(" ");
@@ -128,8 +123,6 @@ class Main {
                             long start = System.nanoTime();
 
                             if (!nec) {
-
-                                // for (int i = 0; i < 10; i++) {
                                 System.out.println("tree1");
                                 CodeTree tree = new CodeTree(graphCode, G, bw, dataset, allfind);
 
@@ -168,7 +161,10 @@ class Main {
                                 int count2 = 0;
 
                                 for (ArrayList<Pair<Integer, Graph>> Q_set : Q) {
+
                                     adjust[count++] = index;
+                                    if (datasetID == 6 && index == 32)
+                                        continue;
 
                                     if (index <= maxedge) {
                                         System.out.println("\nQ" + index + "R");
