@@ -41,7 +41,7 @@ class Main {
             allfind.write(
                     "dataset,depth,addPathtoTree(s),Tree_size,addIDtoTree(s),Build_tree(s),memory cost\n");
 
-            for (datasetID = 0; datasetID <= 0; datasetID++) {
+            for (datasetID = 0; datasetID <= 6; datasetID++) {
                 br_whole.write(
                         "dataset,query_set,A/C,(G-C)/(G-A),SP,filtering_time(ms),verification_time(ms),query_time(ms),tree1_search_time(ms),node_fil_time(ms),|In(Q)|,|A(Q)|,|Can(Q)|,|F(Q)|,Num deleted Vertices,total deleted edges Num,codetree_filtime/fil_num,codetree_fil_num,allfil_num/allfil_time,allfil_num,nonfail,verify num,q_trav_num\n");
 
@@ -76,7 +76,7 @@ class Main {
                     for (int numOfEdge = minedge; numOfEdge <= maxedge; numOfEdge *= 2) {
                         ArrayList<Pair<Integer, Graph>> qset = new ArrayList<>();
                         for (int i = 0; i < querysize; i++) {
-                            q_gfuFilename = String.format("Query/%s/sub/%d/q%d.gfu", dataset,
+                            q_gfuFilename = String.format("Query/%s/randomwalk/%d/q%d.gfu", dataset,
                                     numOfEdge, i);
                             Graph q = SdfFileReader.readFileQuery_gfu(Paths.get(q_gfuFilename));
                             qset.add(new Pair<Integer, Graph>(i, q));
@@ -88,7 +88,7 @@ class Main {
                     for (int numOfEdge = minedge; numOfEdge <= maxedge; numOfEdge *= 2) {
                         ArrayList<Pair<Integer, Graph>> qset = new ArrayList<>();
                         for (int i = 0; i < querysize; i++) {
-                            q_gfuFilename = String.format("Query/%s/induced/%d/q%d.gfu", dataset, numOfEdge,
+                            q_gfuFilename = String.format("Query/%s/bfs/%d/q%d.gfu", dataset, numOfEdge,
                                     i);
                             Graph q = SdfFileReader.readFileQuery_gfu(Paths.get(q_gfuFilename));
                             qset.add(new Pair<Integer, Graph>(i, q));
@@ -163,66 +163,33 @@ class Main {
                                 int index = minedge;
                                 String mode = null;
                                 String data_out = null;
-                                int[] adjust = new int[Q.size() / 2];
+                                int[] adjust = new int[Q.size()];
                                 int count = 0;
                                 int count2 = 0;
 
                                 for (ArrayList<Pair<Integer, Graph>> Q_set : Q) {
-
-                                    // if (index <= maxedge) {
-                                    // index *= 2;
-                                    // continue;
-                                    // }
-                                    // if (index > maxedge) {
-                                    // index *= 2;
-                                    // continue;
-                                    // }
-                                    // if (datasetID == 6 && index != 32) {
-                                    // index *= 2;
-                                    // continue;
-                                    // }
-
-                                    // if ((datasetID == 3 && index == 64) || (datasetID == 6 && index == 32)
-                                    // || (datasetID == 6 && index == 64)) {
-                                    // index *= 2;
-                                    // continue;
-                                    // }
-                                    if ((datasetID == 6 && index == 64)) {
-                                        index *= 2;
-                                        continue;
-                                    }
-
-                                    // if ((datasetID == 3 && index >= 32) || (datasetID == 6 && index >= 32)
-                                    // || index >= 128) {
-                                    // index *= 2;
-                                    // continue;
-                                    // }
-                                    // if ((datasetID == 6 && index >= 32)) {
-                                    // index *= 2;
-                                    // continue;
-                                    // }
+                                    adjust[count++] = index;
 
                                     if (index <= maxedge) {
-                                        adjust[count++] = index;
-                                        System.out.println("\nQ" + index + "S");
-                                        bw.write("Q" + index + "S\n");
-                                        bw2.write("Q" + index + "S\n");
-                                        allbw.write(dataset + ",Q" + index + "S,");
-                                        br_whole.write(dataset + ",Q" + index + "S,");
-                                        data_out = String.format("result/%s_%dS_data.csv", dataset,
+                                        System.out.println("\nQ" + index + "R");
+                                        bw.write("Q" + index + "R\n");
+                                        bw2.write("Q" + index + "R\n");
+                                        allbw.write(dataset + ",Q" + index + "R,");
+                                        br_whole.write(dataset + ",Q" + index + "R,");
+                                        data_out = String.format("result/%s_%dR_data.csv", dataset,
                                                 index);
-                                        mode = "sub";
+                                        mode = "randomwalk";
                                     } else {
                                         int size = adjust[count2++];
 
-                                        System.out.println("\nQ" + size + "I");
-                                        bw.write("Q" + size + "I\n");
-                                        bw2.write("Q" + size + "I\n");
-                                        allbw.write(dataset + ",Q" + size + "I,");
-                                        br_whole.write(dataset + ",Q" + size + "I,");
-                                        data_out = String.format("result/%s_%dI_data.csv", dataset,
+                                        System.out.println("\nQ" + size + "B");
+                                        bw.write("Q" + size + "B\n");
+                                        bw2.write("Q" + size + "B\n");
+                                        allbw.write(dataset + ",Q" + size + "B,");
+                                        br_whole.write(dataset + ",Q" + size + "B,");
+                                        data_out = String.format("result/%s_%dB_data.csv", dataset,
                                                 size);
-                                        mode = "induced";
+                                        mode = "bfs";
                                     }
 
                                     try (BufferedWriter bwout = new BufferedWriter(

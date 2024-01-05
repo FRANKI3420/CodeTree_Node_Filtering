@@ -67,6 +67,7 @@ public class CodeTree implements Serializable {
                 limDepth = 5;
                 break;
         }
+        limDepth = 5;
         delta = limDepth;
         for (Graph g : G) {
             int start_vertice = rand.nextInt(g.order);

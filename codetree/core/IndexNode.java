@@ -98,6 +98,7 @@ public class IndexNode implements Serializable {
     static int labelNumFiltering = 0;
     static int a_labelNumFiltering = 0;
     static int labelFiltering_time = 0;
+    static int fail = 0;
 
     static ArrayList<IndexNode> removeNode = new ArrayList<>();
 
@@ -262,6 +263,12 @@ public class IndexNode implements Serializable {
 
         // if (q.id == 0)
         // System.out.println("\n辿った節点数" + traverse_cou);
+        if (fail == 50) {
+            if (q.id == 99) {
+                init_param();
+            }
+            return new BitSet();
+        }
 
         long start = System.nanoTime();
 
@@ -274,36 +281,14 @@ public class IndexNode implements Serializable {
         traverse = true;
 
         List<Pair<IndexNode, SearchInfo>> infoList = impl.beginSearch(q, this);
-        if (impl == new AcgmCode()) {
-            if (delta >= q.order) {
-                for (Pair<IndexNode, SearchInfo> info : infoList) {
-                    // U.or(matchGraphIndicesBitSet);
-                    info.left.doublesearch(q, info.right, impl, false);
-                    if (!traverse)
-                        break;
-                }
 
-                a_in_count = In.cardinality();
-                in_count += a_in_count;
-                result.or(In);
-                // if (!traverse) {
-                // Can.clear();
-                // } else {
-                // Can.andNot(In);
-                // }
-            } else {
-                for (Pair<IndexNode, SearchInfo> info : infoList) {
-                    info.left.subsearch(q, info.right, impl);
-                }
-            }
-        } else {
-            for (Pair<IndexNode, SearchInfo> info : infoList) {
-                info.left.subsearch_dfs(q, info.right, impl);
-            }
-            a_in_count = In.cardinality();
-            in_count += a_in_count;
-            result.or(In);
+        for (Pair<IndexNode, SearchInfo> info : infoList) {
+            info.left.subsearch_dfs(q, info.right, impl);
         }
+        a_in_count = In.cardinality();
+        in_count += a_in_count;
+        result.or(In);
+
         a_fil_count = Gsize - Can.cardinality();
         if (!traverse) {
             Can.clear();
@@ -357,14 +342,16 @@ public class IndexNode implements Serializable {
         write_file_indiv(q, bw_data, Gsize);
 
         if (q.id == 99) {
-            System.out.println("辿った節点数" + q_trav_num);
-            System.out.println("削除できた頂点数/|Can(Q)|:" + (double) query_per_nf_count / (doukeicount + lab_fil_num));
-            System.out.println("query time:" + ":" + String.format("%.6f", ((double) search_time / 1000 / 1000 +
+            // System.out.println("辿った節点数" + q_trav_num);
+            System.out.println("\nA/C:" + String.format("%.5f", FPratio / nonfail));
+            System.out.println("A:" + totoal_kai);
+            // System.out.println("削除できた頂点数/|Can(Q)|:" + (double) query_per_nf_count /
+            // (doukeicount + lab_fil_num));
+            System.out.println("query time:" + String.format("%.3f", ((double) search_time / 1000 / 1000 +
                     verification_time + (double) (edgeFiltering_time + nodeFiltering_time) / 1000 / 1000) / 100));
 
             write_file(allbw, bw, Gsize, br_whole);
             init_param();
-
         }
         return result;
     }
@@ -463,6 +450,10 @@ public class IndexNode implements Serializable {
         }
 
         if (children.size() == 0) {
+            return;
+        }
+
+        if (backtrackJudge()) {
             return;
         }
 
@@ -820,6 +811,7 @@ public class IndexNode implements Serializable {
                 FPre = 0;
                 filpertime = 0;
                 SPper_q = 0;
+                fail++;
             } else {
                 nonfail++;
                 InputStream inputStream = p.getInputStream();
@@ -1108,6 +1100,7 @@ public class IndexNode implements Serializable {
     }
 
     private void init_param() {
+        fail = 0;
         contains_search = 0;
         equals_search = 0;
         removeTotalSize = 0;
@@ -1146,6 +1139,15 @@ public class IndexNode implements Serializable {
         verfyNum = 0;
         labelFiltering_time = 0;
         q_trav_num = 0;
+        traverse_cou = 0;
+        deletedVsumPerq = 0;
+        a_nodeFiltering_time = 0;
+        a_labelNumFiltering = 0;
+        labelFilteringGraph = 0;
+        query_per_veq = 0;
+        fileter_time = 0;
+        verify_time = 0;
+        veq_per_Can = 0;
     }
 
     List<Integer> search(Graph q, GraphCode impl) {
