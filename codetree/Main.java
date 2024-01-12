@@ -163,8 +163,10 @@ class Main {
                                 for (ArrayList<Pair<Integer, Graph>> Q_set : Q) {
 
                                     adjust[count++] = index;
-                                    if (datasetID == 6 && index == 32)
+                                    if (datasetID == 6 && index == 32) {
+                                        index *= 2;
                                         continue;
+                                    }
 
                                     if (index <= maxedge) {
                                         System.out.println("\nQ" + index + "R");
