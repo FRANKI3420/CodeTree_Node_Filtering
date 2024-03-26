@@ -165,6 +165,7 @@ public class CodeTree implements Serializable {
             Graph g = G.get(i);
 
             List<CodeFragment> code = impl.computeCanonicalCode(g, b);// 準正準コードを得る
+            code.toString();
             root.addPath(code, i, true);
 
             if (i % 100000 == 0) {
@@ -174,7 +175,9 @@ public class CodeTree implements Serializable {
             } else if (i % 1000 == 0) {
                 System.out.print(".");
             }
+
         }
+        root.addInfo();
 
         System.out.println();
         System.out.println("Tree size: " + root.size());

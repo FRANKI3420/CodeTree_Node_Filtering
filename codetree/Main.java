@@ -18,7 +18,7 @@ class Main {
     private static String dataset;
     private static GraphCode graphCode;
     private static int graphCodeID = 1;
-    private static int searchID = 1;
+    private static int searchID = 2;
     private static int datasetID = 0;
 
     public static void main(String[] args) throws InterruptedException {
@@ -26,31 +26,32 @@ class Main {
             System.out.println("無効なグラフコードです。");
             System.exit(0);
         }
+        parseArgs(args);
 
-        long max = Runtime.getRuntime().maxMemory();
+        if (searchID == 1) {
 
-        System.out.println("max: " + max / 1024 / 1024 / 1024);
-        String allindex = String.format("result/all_index.csv", dataset);
-        String wholeresult = String.format("result/all_result.csv", dataset);
-        Path writeindex = Paths.get(allindex);
-        Path writewhole = Paths.get(wholeresult);
-        try (BufferedWriter allfind = Files.newBufferedWriter(writeindex);
-                BufferedWriter br_whole = Files.newBufferedWriter(writewhole)) {
-            allfind.write(
-                    "dataset,depth,addPathtoTree(s),Tree_size,Tree_size(new),removeTime(s),addIDtoTree(s),Build_tree(s),memory cost\n");
+            long max = Runtime.getRuntime().maxMemory();
 
-            for (datasetID = 0; datasetID <= 6; datasetID++) {
-                br_whole.write(
-                        "dataset,query_set,A/C,(G-C)/(G-A),SP,filtering_time(ms),verification_time(ms),query_time(ms),tree1_search_time(ms),node_fil_time(ms),|In(Q)|,|A(Q)|,|Can(Q)|,|F(Q)|,Num deleted Vertices,total deleted edges Num,codetree_filtime/fil_num,codetree_fil_num,allfil_num/allfil_time,allfil_num,nonfail,verify num,q_trav_num\n");
+            System.out.println("max: " + max / 1024 / 1024 / 1024);
+            String allindex = String.format("result/all_index.csv", dataset);
+            String wholeresult = String.format("result/all_result.csv", dataset);
+            Path writeindex = Paths.get(allindex);
+            Path writewhole = Paths.get(wholeresult);
+            try (BufferedWriter allfind = Files.newBufferedWriter(writeindex);
+                    BufferedWriter br_whole = Files.newBufferedWriter(writewhole)) {
+                allfind.write(
+                        "dataset,depth,addPathtoTree(s),Tree_size,Tree_size(new),removeTime(s),addIDtoTree(s),Build_tree(s),memory cost\n");
 
-                if (datasetID < 0 || datasetID > 6) {
-                    System.out.println("無効なデータセットIDです");
-                    System.exit(0);
-                }
+                for (datasetID = 0; datasetID <= 6; datasetID++) {
+                    br_whole.write(
+                            "dataset,query_set,A/C,(G-C)/(G-A),SP,filtering_time(ms),verification_time(ms),query_time(ms),tree1_search_time(ms),node_fil_time(ms),|In(Q)|,|A(Q)|,|Can(Q)|,|F(Q)|,Num deleted Vertices,total deleted edges Num,codetree_filtime/fil_num,codetree_fil_num,allfil_num/allfil_time,allfil_num,nonfail,verify num,q_trav_num\n");
 
-                parseArgs(args);
+                    if (datasetID < 0 || datasetID > 6) {
+                        System.out.println("無効なデータセットIDです");
+                        System.exit(0);
+                    }
 
-                if (searchID == 1) {
+                    // parseArgs(args);
 
                     List<ArrayList<Pair<Integer, Graph>>> Q = new ArrayList<>();
                     final int querysize = 100;
@@ -194,63 +195,53 @@ class Main {
                         System.out.println(e);
                     }
 
-                } else if (searchID == 2) {
-                    // datasetID = 0;
-                    System.out.println("スーパーグラフ検索を開始します");
+                }
+            } catch (IOException e) {
+                System.out.println(e);
+            }
 
-                    // List<Graph> G = new ArrayList<Graph>();
+        } else if (searchID == 2) {
+            System.out.println("スーパーグラフ検索を開始します");
 
-                    // for (int i = 0; i < datasetSize; i++) {
-                    // String filename = String.format("%s/g%d.gfu", dataset, i);
-                    // Graph g = SdfFileReader.readFileQuery_gfu(Paths.get(filename));
-                    // G.add(g);
-                    // }
+            List<Graph> G = SdfFileReader.readFile(Paths.get(sdfFilename));
 
-                    List<Graph> G = SdfFileReader.readFile(Paths.get(sdfFilename));
+            ArrayList<Pair<Integer, Graph>> Q = new ArrayList<>();
+            for (int i = 0; i < G.size(); ++i) {
+                Graph g = G.get(i);
 
-                    ArrayList<Pair<Integer, Graph>> Q = new ArrayList<>();
-                    for (int i = 0; i < G.size(); ++i) {
-                        Graph g = G.get(i);
+                final int size = g.size();
 
-                        final int size = g.size();
-
-                        if (34 <= size && size <= 36 && g.isConnected()) {
-                            Q.add(new Pair<Integer, Graph>(i, g));
-                        }
-                    }
-
-                    System.out.println("G size: " + G.size());
-                    System.out.println("Q size: " + Q.size());
-
-                    long start = System.nanoTime();
-                    CodeTree tree = new CodeTree(graphCode, G, 100);// コード木構築
-                    System.out.println("Build tree: " + (System.nanoTime() - start) / 1000 / 1000
-                            + "msec");
-
-                    G = null;
-
-                    Path out = Paths.get("output_supergraph.txt");
-                    try (BufferedWriter bw = Files.newBufferedWriter(out)) {
-                        start = System.nanoTime();
-
-                        for (Pair<Integer, Graph> q : Q) {
-                            List<Integer> result = tree.supergraphSearch(q.right);
-                            bw.write(q.left.toString() + result.toString() + "\n");
-                        }
-
-                        final long time = System.nanoTime() - start;
-                        System.out.println((time) + " nano sec");
-                        System.out.println((time / 1000 / 1000) + " msec");
-                    } catch (IOException e) {
-                        System.exit(1);
-                    }
+                if (34 <= size && size <= 36 && g.isConnected()) {
+                    Q.add(new Pair<Integer, Graph>(i, g));
                 }
             }
-        } catch (IOException e) {
-            System.out.println(e);
-            System.exit(1);
-        }
 
+            System.out.println("G size: " + G.size());
+            System.out.println("Q size: " + Q.size());
+
+            long start = System.nanoTime();
+            CodeTree tree = new CodeTree(graphCode, G, 100);// コード木構築
+            System.out.println("Build tree: " + (System.nanoTime() - start) / 1000 / 1000
+                    + "msec");
+
+            G = null;
+
+            Path out = Paths.get("output_supergraph.txt");
+            try (BufferedWriter bw = Files.newBufferedWriter(out)) {
+                start = System.nanoTime();
+
+                for (Pair<Integer, Graph> q : Q) {
+                    List<Integer> result = tree.supergraphSearch(q.right);
+                    bw.write(q.left.toString() + result.toString() + "\n");
+                }
+
+                final long time = System.nanoTime() - start;
+                System.out.println((time) + " nano sec");
+                System.out.println((time / 1000 / 1000) + " msec");
+            } catch (IOException e) {
+                System.exit(1);
+            }
+        }
     }
 
     private static void parseArgs(String[] args) {

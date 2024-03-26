@@ -246,20 +246,24 @@ public class IndexNode implements Serializable {
     void addPath(List<CodeFragment> code, int graphIndex, boolean supergraphSearch) {
         final int height = code.size();
 
-        if (this.nodeID == 0) {
-            nodeIDcount++;
-            nodeID = nodeIDcount;
-        }
-
         if (supergraphSearch) {
             ++count;
             supNode = true;
-            if (height <= 0 && graphIndex != -1) {
+            int dep = -1;
+            for (IndexNode a = this; a != null; a = a.parent) {
+                dep++;
+            }
+            depth = dep;
+            if (height <= 0) {
                 matchGraphIndices.add(graphIndex);
                 return;
             }
 
         } else {
+            if (this.nodeID == 0) {
+                nodeIDcount++;
+                nodeID = nodeIDcount;
+            }
             if (graphIndex != -1)
                 matchGraphIndicesBitSet.set(graphIndex, true);
 
@@ -284,6 +288,7 @@ public class IndexNode implements Serializable {
 
         IndexNode m = new IndexNode(this, car);
         if (supergraphSearch)
+
             m.supNode = true;
         children.add(m);
 
@@ -1223,25 +1228,32 @@ public class IndexNode implements Serializable {
         }
 
         Collections.sort(result);
+        supergraphSearchAnswer += result.size();
+        if (q.id == 706726) {
+            System.out.println("スーパーグラフ検索の解の個数:" + supergraphSearchAnswer);
+        }
+
         return result;
     }
+
+    static int supergraphSearchAnswer = 0;
 
     private void search(Set<IndexNode> result, Graph q, SearchInfo info, GraphCode impl) {
         final int c = matchGraphIndices.size();
         if (c > 0 && !result.contains(this)) {
             result.add(this);
-
             for (IndexNode p = this; p != null; p = p.parent) {// 最適化アルゴリズム発動
                 p.count -= c;
             }
         }
 
-        List<Pair<CodeFragment, SearchInfo>> nextFrags = impl.enumerateFollowableFragments(q, info, null);
+        List<Pair<CodeFragment, SearchInfo>> nextFrags = impl.enumerateFollowableFragments(q, info, adjLabels,
+                childEdgeFrag);
 
         for (IndexNode m : children) {
             if (m.count > 0 && m.supNode) {
                 for (Pair<CodeFragment, SearchInfo> frag : nextFrags) {
-                    if (frag.left.equals(m.frag)) {
+                    if (frag.left.contains(m.frag)) {
                         m.search(result, q, frag.right, impl);
                     }
                 }
