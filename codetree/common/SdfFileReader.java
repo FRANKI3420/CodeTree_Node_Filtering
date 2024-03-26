@@ -105,7 +105,8 @@ public class SdfFileReader {
 
         byte[] vertices = new byte[order];
         for (int i = 0; i < order; ++i) {
-            line = mol.get(2 + i);
+            // line = mol.get(2 + i);
+            line = "0";
             vertices[i] = (byte) Integer.parseInt(line);
         }
 

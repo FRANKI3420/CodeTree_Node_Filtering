@@ -50,12 +50,12 @@ public class CodeTree implements Serializable {
 
             case "pcms":
                 delta = 10;
-                loop = 10;
+                // loop = 10;
                 break;
 
             case "ppigo":
                 delta = 5;
-                loop = 20;
+                // loop = 20;
                 break;
         }
         for (Graph g : G) {
@@ -65,6 +65,7 @@ public class CodeTree implements Serializable {
                 Graph inducedGraph = g.generateInducedGraph(targetVertices);
                 start_vertice = rand.nextInt(inducedGraph.order);
                 code = impl.computeCanonicalCode(inducedGraph, start_vertice, delta);
+                // impl.toString(code);
                 root.addPath(code, g.id, false);
             }
         }
@@ -226,7 +227,7 @@ public class CodeTree implements Serializable {
             BufferedWriter bwout, BufferedWriter allbw, List<Graph> G,
             HashMap<Integer, ArrayList<String>> gMaps, BufferedWriter br_whole)
             throws IOException, InterruptedException {
-        return root.subsearch(query, impl, bw, mode, dataset, bwout, allbw, G, "Query", gMaps, delta,
+        return root.subsearch(query, impl, bw, mode, dataset, bwout, allbw, G, "Query_nolabel", gMaps, delta,
                 br_whole);
     }
 }

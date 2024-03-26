@@ -59,6 +59,14 @@ class Main {
 
                     List<Graph> G = SdfFileReader.readFile_gfu(Paths.get(gfuFilename));
 
+                    // String writeFileName = dataset + "2.gfu";
+                    // Path write = Paths.get(writeFileName);
+                    // try (BufferedWriter bw = Files.newBufferedWriter(write)) {
+                    // for (Graph g : G) {
+                    // g.writeGraph2Gfu(bw);
+                    // }
+                    // }
+
                     for (int numOfEdge = minedge; numOfEdge <= maxedge; numOfEdge *= 2) {
                         ArrayList<Pair<Integer, Graph>> qset = new ArrayList<>();
                         for (int i = 0; i < querysize; i++) {
@@ -82,6 +90,9 @@ class Main {
                         // query_search(qset, numOfEdge, "B");
                         Q.add(qset);
                     }
+
+                    // if (true)
+                    // continue;
 
                     System.out.println("G size: " + G.size());
 
@@ -195,16 +206,8 @@ class Main {
                     }
 
                 } else if (searchID == 2) {
-                    // datasetID = 0;
+                    datasetID = 0;
                     System.out.println("スーパーグラフ検索を開始します");
-
-                    // List<Graph> G = new ArrayList<Graph>();
-
-                    // for (int i = 0; i < datasetSize; i++) {
-                    // String filename = String.format("%s/g%d.gfu", dataset, i);
-                    // Graph g = SdfFileReader.readFileQuery_gfu(Paths.get(filename));
-                    // G.add(g);
-                    // }
 
                     List<Graph> G = SdfFileReader.readFile(Paths.get(sdfFilename));
 
@@ -289,31 +292,31 @@ class Main {
         }
 
         if (datasetID == 1) {
-            gfuFilename = "pdbs.gfu";
+            gfuFilename = "pdbs2.gfu";
             dataset = "pdbs";
             System.out.println("PDBS");
         } else if (datasetID == 2) {
-            gfuFilename = "pcms.gfu";
+            gfuFilename = "pcms2.gfu";
             dataset = "pcms";
             System.out.println("PCM");
         } else if (datasetID == 3) {
-            gfuFilename = "ppigo.gfu";
+            gfuFilename = "ppigo2.gfu";
             dataset = "ppigo";
             System.out.println("PPI");
         } else if (datasetID == 4) {
-            gfuFilename = "IMDB-MULTI.gfu";
+            gfuFilename = "IMDB-MULTI2.gfu";
             dataset = "IMDB-MULTI";
             System.out.println("IMDB");
         } else if (datasetID == 5) {
-            gfuFilename = "REDDIT-MULTI-5K.gfu";
+            gfuFilename = "REDDIT-MULTI-5K2.gfu";
             dataset = "REDDIT-MULTI-5K";
             System.out.println("REDDIT");
         } else if (datasetID == 6) {
-            gfuFilename = "COLLAB.gfu";
+            gfuFilename = "COLLAB2.gfu";
             dataset = "COLLAB";
             System.out.println("COLLAB");
         } else if (datasetID == 0) {
-            gfuFilename = "AIDS.gfu";
+            gfuFilename = "AIDS2.gfu";
             dataset = "AIDS";
             System.out.println("AIDS");
         }

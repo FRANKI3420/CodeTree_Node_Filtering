@@ -319,4 +319,16 @@ public class AcgmCode
         // time += System.nanoTime() - t;
         return false;
     }
+
+    @Override
+    public void toString(List<CodeFragment> code) {
+
+        for (CodeFragment c : code) {
+            System.out.print(c.getVlabel() + ",");
+            for (byte e : c.getelabel()) {
+                System.out.print(e + " ");
+            }
+            System.out.println();
+        }
+    }
 }
