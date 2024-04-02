@@ -410,6 +410,8 @@ public class IndexNode implements Serializable {
             }
             // nonfail++;// filtering time を計測時にon
         } else {
+            a_in_count = In.cardinality();
+            in_count += a_in_count;
             fil_count += a_fil_count;
             doukeicount += Can.cardinality();
             a_filterTime = System.nanoTime() - start;
