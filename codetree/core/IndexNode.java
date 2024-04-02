@@ -76,7 +76,6 @@ public class IndexNode implements Serializable {
     static int a_fil_count = 0;
     static long a_filterTime = 0;
     static int veq_answer_num = 0;
-    static long contains_search = 0;
     static long equals_search = 0;
     static int backtrack_count = 0;
     static long edgeFiltering_time = 0;
@@ -330,8 +329,8 @@ public class IndexNode implements Serializable {
 
         if (q.id == 0 && q.size == 4) {
             System.out.println("\n辿った節点数" + traverse_cou);
-            System.out.println("backtrackNodeNum" + backtrackNodeNum);
-            System.out.println("backtrackNodeNum_leaf" + backtrackNodeNum_leaf);
+            // System.out.println("backtrackNodeNum" + backtrackNodeNum);
+            // System.out.println("backtrackNodeNum_leaf" + backtrackNodeNum_leaf);
             backtrackNodeNum = 0;
             backtrackNodeNum_leaf = 0;
         }
@@ -358,10 +357,9 @@ public class IndexNode implements Serializable {
                 if (!traverse)
                     break;
             }
-            a_in_count = In.cardinality();
-            in_count += a_in_count;
+            // a_in_count = In.cardinality();
+            // in_count += a_in_count;
             result.or(In);
-            a_fil_count = G.size() - Can.cardinality();
 
             if (!traverse) {
                 Can.clear();
@@ -373,19 +371,20 @@ public class IndexNode implements Serializable {
                 info.left.subsearch(q, info.right, impl, traversedNode);
             }
             a_in_count = 0;
-            a_fil_count = G.size() - Can.cardinality();
             initTraverseNecessity();
         }
+        // a_fil_count = G.size() - Can.cardinality();
 
         infoList = null;
 
-        contains_search += System.nanoTime() - start;
+        // contains_search += System.nanoTime() - start;
 
         if (Can.cardinality() != 0) {
             verfyNum++;
-            fil_count += a_fil_count;
+            // fil_count += a_fil_count;
             a_filterTime = System.nanoTime() - start;
-            search_time += a_filterTime;// filtering time
+
+            // search_time += a_filterTime;// filtering time
 
             start = System.nanoTime();
 
@@ -393,13 +392,22 @@ public class IndexNode implements Serializable {
 
             a_nodeFiltering_time = System.nanoTime() - start;
 
-            nodeFiltering_time += a_nodeFiltering_time;
+            // nodeFiltering_time += a_nodeFiltering_time;
 
-            doukeicount += Can.cardinality();
+            // doukeicount += Can.cardinality();
 
             write_file_for_Ver(G, q, gMaps);
 
             verification_VEQ(directory, dataset, mode, q, G.size());
+            if (timelimit) {// 時間制限を迎えなかった場合
+                a_fil_count = G.size() - Can.cardinality();
+                fil_count += a_fil_count;
+                search_time += a_filterTime;// filtering time
+                nodeFiltering_time += a_nodeFiltering_time;
+                doukeicount += Can.cardinality();
+                a_in_count = In.cardinality();
+                in_count += a_in_count;
+            }
             // nonfail++;// filtering time を計測時にon
         } else {
             fil_count += a_fil_count;
@@ -843,6 +851,8 @@ public class IndexNode implements Serializable {
         write_time += System.nanoTime() - time;
     }
 
+    static boolean timelimit;
+
     @SuppressWarnings("deprecation")
     private void verification_VEQ(String directory, String dataset, String mode, Graph q, int Gsize)
             throws InterruptedException {
@@ -855,7 +865,7 @@ public class IndexNode implements Serializable {
             // Query/%s/%s/%d/q%d.gfu",
             // dataset, mode, q.size, q.id);
             p = runtime.exec(command);
-            boolean timelimit = p.waitFor(10, TimeUnit.MINUTES);
+            timelimit = p.waitFor(10, TimeUnit.MINUTES);
             if (!timelimit) {
                 verification_time += 600000;// 10m
                 query_per_time = 600000;
@@ -1010,7 +1020,7 @@ public class IndexNode implements Serializable {
                     + String.format("%.6f", ((double) search_time / 1000 / 1000 +
                             verification_time + (double) (nodeFiltering_time) / 1000 / 1000) / 100)
                     + ","
-                    + String.format("%.6f", (double) contains_search / 1000 / 1000 / nonfail) + ","// tree1
+                    + String.format("%.6f", (double) search_time / 1000 / 1000 / nonfail) + ","// tree1
                     // + String.format("%.6f", (double) equals_search / 1000 / 1000 / nonfail) +
                     // ","// tree2
                     // + String.format("%.6f", (double) edgeFiltering_time / 1000 / 1000 / nonfail)
@@ -1048,7 +1058,7 @@ public class IndexNode implements Serializable {
                     + String.format("%.6f", ((double) search_time / 1000 / 1000 +
                             verification_time + (double) (nodeFiltering_time) / 1000 / 1000) / 100)
                     + ","
-                    + String.format("%.6f", (double) contains_search / 1000 / 1000 / nonfail) + ","// tree1
+                    + String.format("%.6f", (double) search_time / 1000 / 1000 / nonfail) + ","// tree1
                     // + String.format("%.6f", (double) equals_search / 1000 / 1000 / nonfail) +
                     // ","// tree2
                     // + String.format("%.6f", (double) edgeFiltering_time / 1000 / 1000 / nonfail)
@@ -1085,8 +1095,8 @@ public class IndexNode implements Serializable {
             bw.write("(E)読み込み関数時間(ms): " + String.format("%.2f", (double) read_time /
                     1000 / 1000) + "\n");
 
-            bw.write("contain_search_time (ms): "
-                    + String.format("%.6f", (double) contains_search / 1000 / 1000 / nonfail)
+            bw.write("tree_search_time (ms): "
+                    + String.format("%.6f", (double) search_time / 1000 / 1000 / nonfail)
                     + "\n");
 
             bw.write("Number of Filtering Graphs: " + fil_count + "\n");
@@ -1154,7 +1164,6 @@ public class IndexNode implements Serializable {
 
     private void init_param() {
         fail = 0;
-        contains_search = 0;
         equals_search = 0;
         removeTotalSize = 0;
         removeTotalGraphs = 0;
