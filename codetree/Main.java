@@ -9,6 +9,8 @@ import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 
+import javax.management.Query;
+
 class Main {
     static Random rand;
 
@@ -18,7 +20,7 @@ class Main {
     private static String dataset;
     private static GraphCode graphCode;
     private static int graphCodeID = 1;
-    private static int searchID = 2;
+    private static int searchID = 1;
     private static int datasetID = 0;
 
     public static void main(String[] args) throws InterruptedException {
@@ -42,7 +44,7 @@ class Main {
                 allfind.write(
                         "dataset,depth,addPathtoTree(s),Tree_size,Tree_size(new),removeTime(s),addIDtoTree(s),Build_tree(s),memory cost\n");
 
-                for (datasetID = 0; datasetID <= 6; datasetID++) {
+                for (datasetID = 0; datasetID <= 0; datasetID++) {
                     br_whole.write(
                             "dataset,query_set,A/C,(G-C)/(G-A),SP,filtering_time(ms),verification_time(ms),query_time(ms),tree1_search_time(ms),node_fil_time(ms),|In(Q)|,|A(Q)|,|Can(Q)|,|F(Q)|,Num deleted Vertices,total deleted edges Num,codetree_filtime/fil_num,codetree_fil_num,allfil_num/allfil_time,allfil_num,nonfail,verify num,q_trav_num\n");
 
@@ -51,150 +53,171 @@ class Main {
                         System.exit(0);
                     }
 
-                    // parseArgs(args);
+                    int times = 5;// 分割回数
+                    int starts = 1;// 0にすると無ラベルグラフ化
+                    for (int t = starts; t <= times; t++) {// <=で従来のデータセットまで行う
+                        List<ArrayList<Pair<Integer, Graph>>> Q = new ArrayList<>();
+                        final int querysize = 100;
+                        final int minedge = 4;
+                        final int maxedge = 64;
 
-                    List<ArrayList<Pair<Integer, Graph>>> Q = new ArrayList<>();
-                    final int querysize = 100;
-                    final int minedge = 4;
-                    final int maxedge = 64;
+                        List<Graph> G = SdfFileReader.readFile_gfu(Paths.get(gfuFilename));
 
-                    List<Graph> G = SdfFileReader.readFile_gfu(Paths.get(gfuFilename));
-
-                    for (int numOfEdge = minedge; numOfEdge <= maxedge; numOfEdge *= 2) {
-                        ArrayList<Pair<Integer, Graph>> qset = new ArrayList<>();
-                        for (int i = 0; i < querysize; i++) {
-                            q_gfuFilename = String.format("Query/%s/randomwalk/%d/q%d.gfu", dataset,
-                                    numOfEdge, i);
-                            Graph q = SdfFileReader.readFileQuery_gfu(Paths.get(q_gfuFilename));
-                            qset.add(new Pair<Integer, Graph>(i, q));
-                        }
-                        // query_search(qset, numOfEdge, "R");
-                        Q.add(qset);
-                    }
-
-                    for (int numOfEdge = minedge; numOfEdge <= maxedge; numOfEdge *= 2) {
-                        ArrayList<Pair<Integer, Graph>> qset = new ArrayList<>();
-                        for (int i = 0; i < querysize; i++) {
-                            q_gfuFilename = String.format("Query/%s/bfs/%d/q%d.gfu", dataset, numOfEdge,
-                                    i);
-                            Graph q = SdfFileReader.readFileQuery_gfu(Paths.get(q_gfuFilename));
-                            qset.add(new Pair<Integer, Graph>(i, q));
-                        }
-                        // query_search(qset, numOfEdge, "B");
-                        Q.add(qset);
-                    }
-
-                    System.out.println("G size: " + G.size());
-
-                    System.out.println("Q size: " + Q.size() * querysize);
-
-                    String output = String.format("result/%s_output.txt", dataset);
-                    Path out = Paths.get(output);
-
-                    String allresult = String.format("result/%s_result.csv",
-                            dataset);
-                    Path all = Paths.get(allresult);
-
-                    try (BufferedWriter bw2 = Files.newBufferedWriter(out);
-                            BufferedWriter allbw = Files.newBufferedWriter(all);) {
-                        allbw.write(
-                                "dataset,query_set,A/C,(G-C)/(G-A),SP,filtering_time(ms),verification_time(ms),query_time(ms),tree1_search_time(ms),node_fil_time(ms),|In(Q)|,|A(Q)|,|Can(Q)|,|F(Q)|,Num deleted Vertices,total deleted edges Num,codetree_filtime/fil_num,codetree_fil_num,allfil_num/allfil_time,allfil_num,nonfail,verify num,q_trav_num\n");
-
-                        System.out.println(" ");
-                        String resultFilename = String.format("result/%s_result.txt",
-                                dataset);
-
-                        Path res = Paths.get(resultFilename);
-                        try (BufferedWriter bw = Files.newBufferedWriter(res)) {
-
-                            long start = System.nanoTime();
-
-                            System.out.println("tree");
-                            CodeTree tree = new CodeTree(graphCode, G, bw, dataset, allfind);
-
-                            String codetree = String.format("data_structure/%s.ser",
-                                    dataset);
-                            File file = new File(codetree);
-                            long fileSize = file.length();
-                            System.out.println(
-                                    "File size: " + String.format("%.2f", (double) fileSize / 1024 / 1024) + " MB");
-                            allfind.write(String.format("%.2f", (double) fileSize / 1024 / 1024) + "\n");
-
-                            allfind.flush();
-                            // if (true)
-                            // continue;
-
-                            HashMap<Integer, ArrayList<String>> gMaps = makeGmaps(gfuFilename);
-
-                            int index = minedge;
-                            String mode = null;
-                            String data_out = null;
-                            int[] adjust = new int[Q.size()];
-                            int count = 0;
-                            int count2 = 0;
-
-                            for (ArrayList<Pair<Integer, Graph>> Q_set : Q) {
-
-                                adjust[count++] = index;
-
-                                if (index <= maxedge) {
-                                    System.out.println("\nQ" + index + "R");
-                                    bw.write("Q" + index + "R\n");
-                                    bw2.write("Q" + index + "R\n");
-                                    allbw.write(dataset + ",Q" + index + "R,");
-                                    br_whole.write(dataset + ",Q" + index + "R,");
-                                    data_out = String.format("result/%s_%dR_data.csv", dataset,
-                                            index);
-                                    mode = "randomwalk";
-                                } else {
-                                    int size = adjust[count2++];
-
-                                    System.out.println("\nQ" + size + "B");
-                                    bw.write("Q" + size + "B\n");
-                                    bw2.write("Q" + size + "B\n");
-                                    allbw.write(dataset + ",Q" + size + "B,");
-                                    br_whole.write(dataset + ",Q" + size + "B,");
-                                    data_out = String.format("result/%s_%dB_data.csv", dataset,
-                                            size);
-                                    mode = "bfs";
-                                }
-
-                                try (BufferedWriter bwout = new BufferedWriter(
-                                        new OutputStreamWriter(new FileOutputStream(data_out), "UTF-8"));) {
-
-                                    start = System.nanoTime();
-
-                                    for (Pair<Integer, Graph> q : Q_set) {
-                                        if (q.left == 0) {
-                                            System.out.print("");
-                                        } else if (q.left % 50 == 0) {
-                                            System.out.print("*");
-                                        } else if (q.left % 10 == 0) {
-                                            System.out.print(".");
-                                        }
-                                        BitSet result = tree.subgraphSearch(q.right, bw, mode,
-                                                dataset,
-                                                bwout, allbw, G, gMaps, br_whole);
-
-                                        bw2.write(
-                                                q.left.toString() + " " + result.cardinality() + "個"
-                                                        + result.toString()
-                                                        + "\n");
-                                    }
-                                    final long time = System.nanoTime() - start;
-                                    bw.write("(A)*100+(C)+(D)+(E)+(α) 合計処理時間(ms): " + (time / 1000 / 1000) +
-                                            "\n");
-                                    index *= 2;
-                                    Q_set = null;
-                                }
-                                bw.write("*********************************\n");
+                        for (int numOfEdge = minedge; numOfEdge <= maxedge; numOfEdge *= 2) {
+                            ArrayList<Pair<Integer, Graph>> qset = new ArrayList<>();
+                            for (int i = 0; i < querysize; i++) {
+                                q_gfuFilename = String.format("Query/%s/randomwalk/%d/q%d.gfu", dataset,
+                                        numOfEdge, i);
+                                Graph q = SdfFileReader.readFileQuery_gfu(Paths.get(q_gfuFilename));
+                                qset.add(new Pair<Integer, Graph>(i, q));
                             }
+                            // query_search(qset, numOfEdge, "R");
+                            Q.add(qset);
                         }
 
-                    } catch (IOException e) {
-                        System.out.println(e);
-                    }
+                        for (int numOfEdge = minedge; numOfEdge <= maxedge; numOfEdge *= 2) {
+                            ArrayList<Pair<Integer, Graph>> qset = new ArrayList<>();
+                            for (int i = 0; i < querysize; i++) {
+                                q_gfuFilename = String.format("Query/%s/bfs/%d/q%d.gfu", dataset, numOfEdge,
+                                        i);
+                                Graph q = SdfFileReader.readFileQuery_gfu(Paths.get(q_gfuFilename));
+                                qset.add(new Pair<Integer, Graph>(i, q));
+                            }
+                            // query_search(qset, numOfEdge, "B");
+                            Q.add(qset);
+                        }
 
+                        System.out.println("G size: " + G.size());
+                        System.out.println("Q size: " + Q.size() * querysize);
+
+                        int numOflabels = Graph.numOflabels(G);
+                        if (t == starts) {
+                            HashMap<Integer, Integer> labelDistribution = Graph.labelDistribution(G, numOflabels);
+                            System.out.println("頂点ラベルの分布" + labelDistribution.toString());
+                            System.out.println("before");
+                            dataset_search(G);
+                        }
+
+                        int numLabel = numOflabels / times * t;
+                        labelDecrease(G, Q, numLabel);
+
+                        System.out.println("aftter");
+                        dataset_search(G);
+
+                        writeDataset2File(G);
+                        writeQuery2Files(Q);
+
+                        String resultDirectory = String.format("%s_result/%d", dataset, numLabel);
+                        Path resultDirectories = Paths.get(resultDirectory);
+                        Files.createDirectories(resultDirectories);
+
+                        String output = String.format("%s/%s_output.txt", resultDirectory, dataset);
+                        Path out = Paths.get(output);
+
+                        String allresult = String.format("%s/%s_result.csv",
+                                resultDirectory, dataset);
+                        Path all = Paths.get(allresult);
+
+                        if (true)
+                            continue;
+                        try (BufferedWriter bw2 = Files.newBufferedWriter(out);
+                                BufferedWriter allbw = Files.newBufferedWriter(all);) {
+                            allbw.write(
+                                    "dataset,query_set,A/C,(G-C)/(G-A),SP,filtering_time(ms),verification_time(ms),query_time(ms),tree1_search_time(ms),node_fil_time(ms),|In(Q)|,|A(Q)|,|Can(Q)|,|F(Q)|,Num deleted Vertices,total deleted edges Num,codetree_filtime/fil_num,codetree_fil_num,allfil_num/allfil_time,allfil_num,nonfail,verify num,q_trav_num\n");
+
+                            System.out.println(" ");
+                            String resultFilename = String.format("%s/%s_result.txt",
+                                    resultDirectory, dataset);
+
+                            Path res = Paths.get(resultFilename);
+                            try (BufferedWriter bw = Files.newBufferedWriter(res)) {
+
+                                long start = System.nanoTime();
+
+                                System.out.println("tree");
+                                CodeTree tree = new CodeTree(graphCode, G, bw, dataset, allfind);
+
+                                String codetree = String.format("data_structure/%s.ser",
+                                        dataset);
+                                File file = new File(codetree);
+                                long fileSize = file.length();
+                                System.out.println(
+                                        "File size: " + String.format("%.2f", (double) fileSize / 1024 / 1024) + " MB");
+                                allfind.write(String.format("%.2f", (double) fileSize / 1024 / 1024) + "\n");
+
+                                allfind.flush();
+
+                                HashMap<Integer, ArrayList<String>> gMaps = makeGmaps(gfuFilename);
+
+                                int index = minedge;
+                                String mode = null;
+                                String data_out = null;
+                                int[] adjust = new int[Q.size()];
+                                int count = 0;
+                                int count2 = 0;
+
+                                for (ArrayList<Pair<Integer, Graph>> Q_set : Q) {
+
+                                    adjust[count++] = index;
+
+                                    if (index <= maxedge) {
+                                        System.out.println("\nQ" + index + "R");
+                                        bw.write("Q" + index + "R\n");
+                                        bw2.write("Q" + index + "R\n");
+                                        allbw.write(dataset + ",Q" + index + "R,");
+                                        br_whole.write(dataset + ",Q" + index + "R,");
+                                        data_out = String.format("%s/%s_%dR_data.csv", resultDirectory, dataset,
+                                                index);
+                                        mode = "randomwalk";
+                                    } else {
+                                        int size = adjust[count2++];
+
+                                        System.out.println("\nQ" + size + "B");
+                                        bw.write("Q" + size + "B\n");
+                                        bw2.write("Q" + size + "B\n");
+                                        allbw.write(dataset + ",Q" + size + "B,");
+                                        br_whole.write(dataset + ",Q" + size + "B,");
+                                        data_out = String.format("%s/%s_%dB_data.csv", resultDirectory, dataset,
+                                                size);
+                                        mode = "bfs";
+                                    }
+
+                                    try (BufferedWriter bwout = new BufferedWriter(
+                                            new OutputStreamWriter(new FileOutputStream(data_out), "UTF-8"));) {
+
+                                        start = System.nanoTime();
+
+                                        for (Pair<Integer, Graph> q : Q_set) {
+                                            if (q.left == 0) {
+                                                System.out.print("");
+                                            } else if (q.left % 50 == 0) {
+                                                System.out.print("*");
+                                            } else if (q.left % 10 == 0) {
+                                                System.out.print(".");
+                                            }
+                                            BitSet result = tree.subgraphSearch(q.right, bw, mode,
+                                                    dataset,
+                                                    bwout, allbw, G, gMaps, br_whole);
+
+                                            bw2.write(
+                                                    q.left.toString() + " " + result.cardinality() + "個"
+                                                            + result.toString()
+                                                            + "\n");
+                                        }
+                                        final long time = System.nanoTime() - start;
+                                        bw.write("(A)*100+(C)+(D)+(E)+(α) 合計処理時間(ms): " + (time / 1000 / 1000) +
+                                                "\n");
+                                        index *= 2;
+                                        Q_set = null;
+                                    }
+                                    bw.write("*********************************\n");
+                                }
+                            }
+
+                        } catch (IOException e) {
+                            System.out.println(e);
+                        }
+                    }
                 }
             } catch (IOException e) {
                 System.out.println(e);
@@ -241,6 +264,65 @@ class Main {
             } catch (IOException e) {
                 System.exit(1);
             }
+        }
+    }
+
+    // 非頻出ラベルからdecrease_num種類になるまで統合
+    private static void labelDecrease(List<Graph> G, List<ArrayList<Pair<Integer, Graph>>> Q, int decrease_num) {
+        int targetLabel = Graph.numOflabels(G);
+        while (targetLabel != decrease_num) {
+            targetLabel--;
+            for (Graph g : G) {
+                for (int j = 0; j < g.vertices.length; j++) {
+                    if (g.vertices[j] == targetLabel) {
+                        g.vertices[j] = (byte) (targetLabel - 1);
+                    }
+                }
+            }
+            for (ArrayList<Pair<Integer, Graph>> Qset : Q) {
+                for (Pair<Integer, Graph> p : Qset) {
+                    for (int j = 0; j < p.right.vertices.length; j++) {
+                        if (p.right.vertices[j] == targetLabel) {
+                            p.right.vertices[j] = (byte) (targetLabel - 1);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private static void writeDataset2File(List<Graph> G) throws IOException {
+        String filename = dataset + "labelchange.gfu";
+        Path write = Paths.get(filename);
+        try (BufferedWriter bw = Files.newBufferedWriter(write)) {
+            for (Graph g : G) {
+                g.writeGraph2Gfu(bw);
+            }
+        }
+    }
+
+    private static void writeQuery2Files(List<ArrayList<Pair<Integer, Graph>>> Q) throws IOException {
+
+        int count = 0;
+        String mode;
+        for (ArrayList<Pair<Integer, Graph>> Qset : Q) {
+            if (count < 5) {
+                mode = "randomwalk";
+            } else {
+                mode = "bfs";
+            }
+            for (Pair<Integer, Graph> p : Qset) {
+                Path directory = Paths
+                        .get(String.format("Query_labelchange/%s/%s/%d", dataset, mode, p.right.size));
+                Files.createDirectories(directory);
+                String path = String.format("Query_labelchange/%s/%s/%d/%d.gfu", dataset, mode, p.right.size,
+                        p.right.id);
+                Path write = Paths.get(path);
+                try (BufferedWriter bw = Files.newBufferedWriter(write)) {
+                    p.right.writeGraph2Gfu(bw);
+                }
+            }
+            count++;
         }
     }
 
@@ -376,14 +458,14 @@ class Main {
             d += g.degree();
             sigma += g.labels();
         }
-        System.out.println("|G| " + G.size());
+        // System.out.println("|G| " + G.size());
         System.out.println("labels " + Graph.numOflabels(G));
-        System.out.println("|V| per g " + V / G.size());
-        System.out.println("|E| per g " + e / G.size());
-        System.out.println(" d per g " + String.format("%.2f", d / G.size()));
+        // System.out.println("|V| per g " + V / G.size());
+        // System.out.println("|E| per g " + e / G.size());
+        // System.out.println(" d per g " + String.format("%.2f", d / G.size()));
         System.out.println("|Σ| per g " + sigma / G.size());
-        System.out.println("最大頂点数 " + Graph.max_vertice(G));
-        System.out.println("最大辺数 " + Graph.max_size(G));
+        // System.out.println("最大頂点数 " + Graph.max_vertice(G));
+        // System.out.println("最大辺数 " + Graph.max_size(G));
         System.out.println();
     }
 

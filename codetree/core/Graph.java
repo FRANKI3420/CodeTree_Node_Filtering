@@ -150,13 +150,25 @@ public class Graph implements Serializable {
         return label.size();
     }
 
-    public BitSet labels_Set() {
+    public static HashMap<Integer, Integer> labelDistribution(List<Graph> G, int numOflabels) {
+        HashMap<Integer, Integer> labelDistribution = new HashMap<>();
+        for (int i = 0; i < numOflabels; i++) {
+            labelDistribution.put(i, 0);
+        }
+        for (Graph g : G) {
+            for (int v = 0; v < g.order(); ++v) {
+                int num = labelDistribution.get((int) g.vertices[v]) + 1;
+                labelDistribution.put((int) g.vertices[v], num);
+            }
+        }
+        return labelDistribution;
+    }
 
+    public BitSet labels_Set() {
         BitSet labels = new BitSet();
         for (int v = 0; v < order; ++v) {
             labels.set(vertices[v]);
         }
-
         return labels;
     }
 
