@@ -9,8 +9,6 @@ import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 
-import javax.management.Query;
-
 class Main {
     static Random rand;
 
@@ -28,10 +26,8 @@ class Main {
             System.out.println("無効なグラフコードです。");
             System.exit(0);
         }
-        parseArgs(args);
 
         if (searchID == 1) {
-
             long max = Runtime.getRuntime().maxMemory();
 
             System.out.println("max: " + max / 1024 / 1024 / 1024);
@@ -44,7 +40,11 @@ class Main {
                 allfind.write(
                         "dataset,depth,addPathtoTree(s),Tree_size,Tree_size(new),removeTime(s),addIDtoTree(s),Build_tree(s),memory cost\n");
 
-                for (datasetID = 0; datasetID <= 0; datasetID++) {
+                for (datasetID = 4; datasetID <= 5; datasetID++) {
+                    if (datasetID == 2 || datasetID == 3)
+                        continue;
+                    parseArgs(args);
+
                     br_whole.write(
                             "dataset,query_set,A/C,(G-C)/(G-A),SP,filtering_time(ms),verification_time(ms),query_time(ms),tree1_search_time(ms),node_fil_time(ms),|In(Q)|,|A(Q)|,|Can(Q)|,|F(Q)|,Num deleted Vertices,total deleted edges Num,codetree_filtime/fil_num,codetree_fil_num,allfil_num/allfil_time,allfil_num,nonfail,verify num,q_trav_num\n");
 
@@ -52,10 +52,9 @@ class Main {
                         System.out.println("無効なデータセットIDです");
                         System.exit(0);
                     }
-
                     int times = 5;// 分割回数
-                    int starts = 1;// 0にすると無ラベルグラフ化
-                    for (int t = starts; t <= times; t++) {// <=で従来のデータセットまで行う
+                    int starts = 0;// 0にすると無ラベルグラフ化
+                    for (int t = starts; t <= 0; t++) {// <=で従来のデータセットまで行う
                         List<ArrayList<Pair<Integer, Graph>>> Q = new ArrayList<>();
                         final int querysize = 100;
                         final int minedge = 4;
@@ -98,16 +97,29 @@ class Main {
                             dataset_search(G);
                         }
 
-                        int numLabel = numOflabels / times * t;
-                        labelDecrease(G, Q, numLabel);
+                        String resultDirectory;
+                        int numLabel = 0;
+                        String queryDirectory;
+                        String datasetFileName;
+                        if (t == times) {
+                            numLabel = numOflabels;
+                            resultDirectory = String.format("%s_result/%d", dataset, numLabel);
+                            queryDirectory = "Query";
+                            datasetFileName = gfuFilename;
+                        } else {
+                            numLabel = numOflabels / times * t;
+                            labelDecrease(G, Q, numLabel);
 
-                        System.out.println("aftter");
-                        dataset_search(G);
+                            System.out.println("aftter");
+                            dataset_search(G);
 
-                        writeDataset2File(G);
-                        writeQuery2Files(Q);
+                            writeDataset2File(G);
+                            writeQuery2Files(Q);
+                            queryDirectory = "Query_labelchange";
 
-                        String resultDirectory = String.format("%s_result/%d", dataset, numLabel);
+                            resultDirectory = String.format("%s_result/%d", dataset, numLabel);
+                            datasetFileName = dataset + "labelchange.gfu";
+                        }
                         Path resultDirectories = Paths.get(resultDirectory);
                         Files.createDirectories(resultDirectories);
 
@@ -118,10 +130,16 @@ class Main {
                                 resultDirectory, dataset);
                         Path all = Paths.get(allresult);
 
-                        if (true)
-                            continue;
+                        String allindex2 = String.format("%s/%s_index.csv",
+                                resultDirectory, dataset);
+                        Path writeindex2 = Paths.get(allindex2);
+
                         try (BufferedWriter bw2 = Files.newBufferedWriter(out);
-                                BufferedWriter allbw = Files.newBufferedWriter(all);) {
+                                BufferedWriter allbw = Files.newBufferedWriter(all);
+                                BufferedWriter allfind2 = Files.newBufferedWriter(writeindex2)) {
+                            allfind2.write(
+                                    "numOflavels,dataset,depth,addPathtoTree(s),Tree_size,Tree_size(new),removeTime(s),addIDtoTree(s),Build_tree(s),memory cost\n");
+                            allfind2.write(numLabel + ",");
                             allbw.write(
                                     "dataset,query_set,A/C,(G-C)/(G-A),SP,filtering_time(ms),verification_time(ms),query_time(ms),tree1_search_time(ms),node_fil_time(ms),|In(Q)|,|A(Q)|,|Can(Q)|,|F(Q)|,Num deleted Vertices,total deleted edges Num,codetree_filtime/fil_num,codetree_fil_num,allfil_num/allfil_time,allfil_num,nonfail,verify num,q_trav_num\n");
 
@@ -135,7 +153,7 @@ class Main {
                                 long start = System.nanoTime();
 
                                 System.out.println("tree");
-                                CodeTree tree = new CodeTree(graphCode, G, bw, dataset, allfind);
+                                CodeTree tree = new CodeTree(graphCode, G, bw, dataset, allfind2);
 
                                 String codetree = String.format("data_structure/%s.ser",
                                         dataset);
@@ -143,11 +161,11 @@ class Main {
                                 long fileSize = file.length();
                                 System.out.println(
                                         "File size: " + String.format("%.2f", (double) fileSize / 1024 / 1024) + " MB");
-                                allfind.write(String.format("%.2f", (double) fileSize / 1024 / 1024) + "\n");
+                                allfind2.write(String.format("%.2f", (double) fileSize / 1024 / 1024) + "\n");
 
-                                allfind.flush();
+                                allfind2.flush();
 
-                                HashMap<Integer, ArrayList<String>> gMaps = makeGmaps(gfuFilename);
+                                HashMap<Integer, ArrayList<String>> gMaps = makeGmaps(datasetFileName);
 
                                 int index = minedge;
                                 String mode = null;
@@ -197,7 +215,7 @@ class Main {
                                             }
                                             BitSet result = tree.subgraphSearch(q.right, bw, mode,
                                                     dataset,
-                                                    bwout, allbw, G, gMaps, br_whole);
+                                                    bwout, allbw, G, gMaps, br_whole, queryDirectory);
 
                                             bw2.write(
                                                     q.left.toString() + " " + result.cardinality() + "個"
@@ -269,21 +287,37 @@ class Main {
 
     // 非頻出ラベルからdecrease_num種類になるまで統合
     private static void labelDecrease(List<Graph> G, List<ArrayList<Pair<Integer, Graph>>> Q, int decrease_num) {
-        int targetLabel = Graph.numOflabels(G);
-        while (targetLabel != decrease_num) {
-            targetLabel--;
+        if (decrease_num == 0) {
             for (Graph g : G) {
                 for (int j = 0; j < g.vertices.length; j++) {
-                    if (g.vertices[j] == targetLabel) {
-                        g.vertices[j] = (byte) (targetLabel - 1);
-                    }
+                    g.vertices[j] = 0;
+
                 }
             }
             for (ArrayList<Pair<Integer, Graph>> Qset : Q) {
                 for (Pair<Integer, Graph> p : Qset) {
                     for (int j = 0; j < p.right.vertices.length; j++) {
-                        if (p.right.vertices[j] == targetLabel) {
-                            p.right.vertices[j] = (byte) (targetLabel - 1);
+                        p.right.vertices[j] = 0;
+                    }
+                }
+            }
+        } else {
+            int targetLabel = Graph.numOflabels(G);
+            while (targetLabel != decrease_num) {
+                targetLabel--;
+                for (Graph g : G) {
+                    for (int j = 0; j < g.vertices.length; j++) {
+                        if (g.vertices[j] == targetLabel) {
+                            g.vertices[j] = (byte) (targetLabel - 1);
+                        }
+                    }
+                }
+                for (ArrayList<Pair<Integer, Graph>> Qset : Q) {
+                    for (Pair<Integer, Graph> p : Qset) {
+                        for (int j = 0; j < p.right.vertices.length; j++) {
+                            if (p.right.vertices[j] == targetLabel) {
+                                p.right.vertices[j] = (byte) (targetLabel - 1);
+                            }
                         }
                     }
                 }
@@ -315,7 +349,7 @@ class Main {
                 Path directory = Paths
                         .get(String.format("Query_labelchange/%s/%s/%d", dataset, mode, p.right.size));
                 Files.createDirectories(directory);
-                String path = String.format("Query_labelchange/%s/%s/%d/%d.gfu", dataset, mode, p.right.size,
+                String path = String.format("Query_labelchange/%s/%s/%d/q%d.gfu", dataset, mode, p.right.size,
                         p.right.id);
                 Path write = Paths.get(path);
                 try (BufferedWriter bw = Files.newBufferedWriter(write)) {

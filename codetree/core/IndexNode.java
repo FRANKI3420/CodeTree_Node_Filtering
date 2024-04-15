@@ -327,13 +327,16 @@ public class IndexNode implements Serializable {
             String directory, HashMap<Integer, ArrayList<String>> gMaps, int delta, BufferedWriter br_whole)
             throws IOException, InterruptedException {
 
-        if (q.id == 0 && q.size == 4) {
-            System.out.println("\n辿った節点数" + traverse_cou);
-            // System.out.println("backtrackNodeNum" + backtrackNodeNum);
-            // System.out.println("backtrackNodeNum_leaf" + backtrackNodeNum_leaf);
-            backtrackNodeNum = 0;
-            backtrackNodeNum_leaf = 0;
-        }
+        // if (q.id == 0 && q.size == 4) {
+        // System.out.println("\n辿った節点数" + traverse_cou);
+        // // System.out.println("backtrackNodeNum" + backtrackNodeNum);
+        // // System.out.println("backtrackNodeNum_leaf" + backtrackNodeNum_leaf);
+        // backtrackNodeNum = 0;
+        // backtrackNodeNum_leaf = 0;
+        // }
+        // if (q.size == 64 && mode.equals("randomwalk")) {
+        // return new BitSet();
+        // }
 
         if (fail == 50) {
             if (q.id == 99) {
@@ -394,7 +397,7 @@ public class IndexNode implements Serializable {
 
             // nodeFiltering_time += a_nodeFiltering_time;
 
-            // doukeicount += Can.cardinality();
+            // doukeicount += Can.cardinality()
 
             write_file_for_Ver(G, q, gMaps);
 
@@ -913,13 +916,14 @@ public class IndexNode implements Serializable {
 
                 long start_read = System.nanoTime();
                 veq_answer_num = 0;
+
                 readAnswer(path, can, result);
                 read_time += System.nanoTime() - start_read;
 
                 if (Gsize == result.cardinality()) {
                     FPre = 1;
                 } else {
-                    FPre = (double) (Gsize - Can.cardinality() - a_in_count) /
+                    FPre = (double) (Gsize - Can.cardinality() - In.cardinality()) /
                             (Gsize - result.cardinality());
                 }
 
@@ -952,10 +956,18 @@ public class IndexNode implements Serializable {
             String line;
             while ((line = br.readLine()) != null) {
                 id = Integer.parseInt(line);
+                // if (result.size() <= id)// bug回避
+                // continue;
                 result.set(can.get(id));
                 veq_answer_num++;
             }
             br.close();
+        } catch (Exception e) {
+            System.err.println(e);
+            System.exit(1);
+        }
+        try (BufferedWriter bw = Files.newBufferedWriter(path)) {
+            bw.write("");
         } catch (Exception e) {
             System.err.println(e);
             System.exit(1);
@@ -1000,6 +1012,7 @@ public class IndexNode implements Serializable {
                 // + ","
                 // + String.format("%.6f", filpertime)
                 + "\n");
+        bw_data.flush();
         deletedVsumPerq = 0;
         a_nodeFiltering_time = 0;
         a_labelNumFiltering = 0;

@@ -227,9 +227,9 @@ public class CodeTree implements Serializable {
     // }
     public BitSet subgraphSearch(Graph query, BufferedWriter bw, String mode, String dataset,
             BufferedWriter bwout, BufferedWriter allbw, List<Graph> G,
-            HashMap<Integer, ArrayList<String>> gMaps, BufferedWriter br_whole)
+            HashMap<Integer, ArrayList<String>> gMaps, BufferedWriter br_whole, String directory)
             throws IOException, InterruptedException {
-        return root.subsearch(query, impl, bw, mode, dataset, bwout, allbw, G, "Query", gMaps, delta,
+        return root.subsearch(query, impl, bw, mode, dataset, bwout, allbw, G, directory, gMaps, delta,
                 br_whole);
     }
 }
