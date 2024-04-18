@@ -10,6 +10,8 @@ output2.txt
 .vscode
 *.json
 *.ser
+*.gfu
+*.csv
 
 Query/*
 Query2/*
