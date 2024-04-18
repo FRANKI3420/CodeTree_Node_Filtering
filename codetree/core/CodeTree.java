@@ -156,33 +156,6 @@ public class CodeTree implements Serializable {
         }
     }
 
-    public CodeTree(GraphCode impl, List<Graph> G, int b) {
-        this.impl = impl;
-        this.root = new IndexNode(null, null);
-
-        System.out.print("Indexing");
-        for (int i = 0; i < G.size(); ++i) {
-            Graph g = G.get(i);
-
-            List<CodeFragment> code = impl.computeCanonicalCode(g, b);// 準正準コードを得る
-            code.toString();
-            root.addPath(code, i, true);
-
-            if (i % 100000 == 0) {
-                System.out.println();
-            } else if (i % 10000 == 0) {
-                System.out.print("*");
-            } else if (i % 1000 == 0) {
-                System.out.print(".");
-            }
-
-        }
-        root.addInfo();
-
-        System.out.println();
-        System.out.println("Tree size: " + root.size());
-    }
-
     private void inclusionCheck(GraphCode impl, List<Graph> G) {
         for (Graph g : G) {
             if (g.id % 100000 == 0) {
@@ -210,6 +183,36 @@ public class CodeTree implements Serializable {
             root.pruningEquivalentNodes(g, impl, g.id, idList, removeIDList);
 
         }
+    }
+
+    public CodeTree(GraphCode impl, List<Graph> G, int b) {
+        this.impl = impl;
+        this.root = new IndexNode(null, null);
+
+        System.out.print("Indexing");
+        for (int i = 0; i < G.size(); ++i) {
+            Graph g = G.get(i);
+
+            boolean[] degreeOne = new boolean[g.order];
+
+            List<CodeFragment> code = impl.computeCanonicalCode(g, b, degreeOne);
+            // List<CodeFragment> code = impl.computeCanonicalCode(g, b);
+            root.addPath(code, i, true);
+            // root.addPath(code, i, true, degreeOne);
+
+            if (i % 100000 == 0) {
+                System.out.println();
+            } else if (i % 10000 == 0) {
+                System.out.print("*");
+            } else if (i % 1000 == 0) {
+                System.out.print(".");
+            }
+
+        }
+        root.addInfo();
+
+        System.out.println();
+        System.out.println("Tree size: " + root.size());
     }
 
     public List<Integer> supergraphSearch(Graph query) {

@@ -41,9 +41,9 @@ public class AcgmCode
         ArrayList<AcgmSearchInfo> infoList1 = new ArrayList<>();
         ArrayList<AcgmSearchInfo> infoList2 = new ArrayList<>(b);
 
-        // origin
         final byte max = g.getMaxVertexLabel();
         code.add(new AcgmCodeFragment(max, 0));
+
         List<Integer> maxVertexList = g.getVertexList(max);
         for (int v0 : maxVertexList) {
             infoList1.add(new AcgmSearchInfo(g, v0));
@@ -68,7 +68,6 @@ public class AcgmCode
                     final int cmpres = maxFrag.isMoreCanonicalThan(frag);
                     if (cmpres < 0) {
                         maxFrag = frag;
-
                         infoList2.clear();
                         infoList2.add(new AcgmSearchInfo(info, g, v));
                     } else if (cmpres == 0 && infoList2.size() < b) {
@@ -318,5 +317,58 @@ public class AcgmCode
         }
         // time += System.nanoTime() - t;
         return false;
+    }
+
+    @Override
+    public List<CodeFragment> computeCanonicalCode(Graph g, int b, boolean[] degreeOne) {
+        final int n = g.order();
+        ArrayList<CodeFragment> code = new ArrayList<>(n);
+
+        ArrayList<AcgmSearchInfo> infoList1 = new ArrayList<>();
+        ArrayList<AcgmSearchInfo> infoList2 = new ArrayList<>(b);
+
+        final byte max = g.getMaxVertexLabel();
+        code.add(new AcgmCodeFragment(max, 0));
+
+        for (int depth = 1; depth < n; ++depth) {
+            AcgmCodeFragment maxFrag = new AcgmCodeFragment((byte) -1, depth);
+
+            byte[] eLabels = new byte[depth];
+            for (AcgmSearchInfo info : infoList1) {
+                for (int v = 0; v < n; ++v) {
+                    if (!info.open.get(v)) {
+                        continue;
+                    }
+
+                    for (int i = 0; i < depth; ++i) {
+                        final int u = info.vertexIDs[i];
+                        eLabels[i] = g.edges[u][v];
+                    }
+
+                    AcgmCodeFragment frag = new AcgmCodeFragment(g.vertices[v], eLabels);
+                    final int cmpres = maxFrag.isMoreCanonicalThan(frag);
+                    if (cmpres < 0) {
+                        maxFrag = frag;
+                        infoList2.clear();
+                        infoList2.add(new AcgmSearchInfo(info, g, v));
+                        if (depth == 1 && g.adjList[info.vertexIDs[0]].length == 1) {
+                            degreeOne[0] = true;
+                        }
+                        if (g.adjList[v].length == 1) {
+                            degreeOne[depth] = true;
+                        }
+                    } else if (cmpres == 0 && infoList2.size() < b) {
+                        infoList2.add(new AcgmSearchInfo(info, g, v));
+                    }
+                }
+            }
+
+            code.add(maxFrag);
+
+            infoList1 = infoList2;
+            infoList2 = new ArrayList<>(b);
+        }
+
+        return code;
     }
 }
