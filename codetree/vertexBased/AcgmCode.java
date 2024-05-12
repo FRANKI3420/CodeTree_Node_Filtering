@@ -234,6 +234,94 @@ public class AcgmCode
         return frags;
     }
 
+    @Override
+    public List<Pair<CodeFragment, SearchInfo>> enumerateFollowableFragments_adj(Graph g, SearchInfo info0,
+            HashSet<Byte> childrenVlabel) {
+        ArrayList<Pair<CodeFragment, SearchInfo>> frags = new ArrayList<>();
+
+        AcgmSearchInfo info = (AcgmSearchInfo) info0;
+
+        final int depth = info.vertexIDs.length;
+
+        byte[] eLabels = new byte[depth];
+
+        // openBitSet.clear();
+        // for (int v = childEdgeFrag.nextSetBit(0); v != -1; v =
+        // childEdgeFrag.nextSetBit(++v)) {
+        // int u = info.vertexIDs[v];
+        // openBitSet.or(g.edgeBitset.get(u));
+        // }
+
+        for (int v = g.edgeBitset.get(info.vertexIDs[depth - 1]).nextSetBit(0); v != -1; v = g.edgeBitset
+                .get(info.vertexIDs[depth - 1]).nextSetBit(++v)) {
+
+            // for (int v : g.adjList[info.vertexIDs[depth - 1]]) {
+            // for (int v = openBitSet.nextSetBit(0); v != -1; v =
+            // openBitSet.nextSetBit(++v)) {
+
+            if (!childrenVlabel.contains(g.vertices[v])) {
+                continue;
+            }
+
+            if (contain(info.vertexIDs, v))
+                continue;
+
+            for (int i = 0; i < depth; ++i) {
+                final int u = info.vertexIDs[i];
+                eLabels[i] = g.edges[u][v];
+            }
+
+            frags.add(new Pair<CodeFragment, SearchInfo>(
+                    new AcgmCodeFragment(g.vertices[v], eLabels), new AcgmSearchInfo(info, g, v, 0)));
+        }
+
+        return frags;
+    }
+
+    @Override
+    public List<Pair<CodeFragment, SearchInfo>> enumerateFollowableFragments_adj2(Graph g, SearchInfo info0,
+            HashSet<Byte> childrenVlabel, int index) {
+        ArrayList<Pair<CodeFragment, SearchInfo>> frags = new ArrayList<>();
+
+        AcgmSearchInfo info = (AcgmSearchInfo) info0;
+
+        final int depth = info.vertexIDs.length;
+
+        byte[] eLabels = new byte[depth];
+
+        // openBitSet.clear();
+        // for (int v = childEdgeFrag.nextSetBit(0); v != -1; v =
+        // childEdgeFrag.nextSetBit(++v)) {
+        // int u = info.vertexIDs[v];
+        // openBitSet.or(g.edgeBitset.get(u));
+        // }
+
+        for (int v = g.edgeBitset.get(info.vertexIDs[index]).nextSetBit(0); v != -1; v = g.edgeBitset
+                .get(info.vertexIDs[index]).nextSetBit(++v)) {
+
+            // for (int v : g.adjList[info.vertexIDs[depth - 1]]) {
+            // for (int v = openBitSet.nextSetBit(0); v != -1; v =
+            // openBitSet.nextSetBit(++v)) {
+
+            if (!childrenVlabel.contains(g.vertices[v])) {
+                continue;
+            }
+
+            if (contain(info.vertexIDs, v))
+                continue;
+
+            for (int i = 0; i < depth; ++i) {
+                final int u = info.vertexIDs[i];
+                eLabels[i] = g.edges[u][v];
+            }
+
+            frags.add(new Pair<CodeFragment, SearchInfo>(
+                    new AcgmCodeFragment(g.vertices[v], eLabels), new AcgmSearchInfo(info, g, v, 0)));
+        }
+
+        return frags;
+    }
+
     boolean contain(int[] vertexIDs, int num) {
         for (int i : vertexIDs) {
             if (i == num) {
@@ -249,7 +337,7 @@ public class AcgmCode
         ArrayList<CodeFragment> code = new ArrayList<>(limDepth);
         ArrayList<AcgmSearchInfo> infoList1 = new ArrayList<>();
 
-        start = g.minDegreeVertices();
+        // start = g.minDegreeVertices();
 
         code.add(new AcgmCodeFragment(g.vertices[start], 0));
 
@@ -265,7 +353,6 @@ public class AcgmCode
             past.clear();
 
             for (AcgmSearchInfo info : infoList1) {
-
                 for (int v = 0; v < n; ++v) {
                     if (info.open.get(v) && g.edgeBitset.get(info.vertexIDs[depth - 1]).get(v)) {
                         next.add(v);

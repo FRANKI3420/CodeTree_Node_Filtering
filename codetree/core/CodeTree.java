@@ -30,7 +30,7 @@ public class CodeTree implements Serializable {
 
         switch (dataset) {
             case "AIDS":
-                delta = 5;
+                delta = 9;
                 break;
 
             case "COLLAB":
@@ -58,11 +58,12 @@ public class CodeTree implements Serializable {
             case "ppigo":
                 rand = new Random(4);
                 delta = 5;
-                delta = 4;
+                // delta = 4;
                 loop = 100;
                 break;
         }
 
+        // if (!dataset.equals("AIDS")) {
         // Path p = Paths.get("patten.gfu");
         // try (BufferedWriter p_bw = Files.newBufferedWriter(p)) {
         // for (Graph g : G) {
@@ -71,8 +72,10 @@ public class CodeTree implements Serializable {
         // HashSet<Integer> targetVertices = g.getTargetVertices(delta, start_vertice);
         // Graph inducedGraph = g.generateInducedGraph(targetVertices);
         // inducedGraph.writeGraph2Gfu(p_bw);
-        // code = impl.computeCode(inducedGraph, 0, delta);
-        // print(code);
+        // start_vertice = rand.nextInt(inducedGraph.order);
+        // code = impl.computeCode(inducedGraph, start_vertice, delta);
+        // // print(code);
+        // // root.generateGraph(code, 0).writeGraph2Gfu(p_bw);
         // root.addPath(code, g.id, false, 0);
         // }
         // }
@@ -80,6 +83,7 @@ public class CodeTree implements Serializable {
         // System.out.println(e);
         // System.exit(0);
         // }
+        // } else {
 
         for (Graph g : G) {
             for (int l = 0; l < loop; l++) {
@@ -92,12 +96,15 @@ public class CodeTree implements Serializable {
                 root.addPath(code, g.id, false, 0);
             }
         }
+        // }
 
         List<ArrayList<CodeFragment>> codelist = impl.computeCanonicalCode(Graph.numOflabels(G));
         for (ArrayList<CodeFragment> c : codelist) {
             root.addPath(c, -1, false, 0);
         }
         codelist = null;
+
+        root.adjustEfrag();
 
         index.write(dataset + "," + delta + ","
                 + String.format("%.6f", (double) (System.nanoTime() - start) / 1000 / 1000 / 1000) + ",");
@@ -140,7 +147,7 @@ public class CodeTree implements Serializable {
         time = System.nanoTime();
         System.out.println("グラフIDの計算中");
         root.addInfo();
-        inclusionCheck(impl, G);
+        inclusionCheck(impl, G, dataset);
         bw.write("addIDtoTree(s): " + String.format("%.3f", (double) (System.nanoTime() - time) / 1000 / 1000 / 1000)
                 + "\n");
         System.out.println("\naddIDtoTree(s): " + (double) (System.nanoTime() - time) / 1000 /
@@ -152,6 +159,7 @@ public class CodeTree implements Serializable {
         // root.sortChildren();
         // root.addDescendantsIDs();
         // root.printCanSize();
+
         root.checkBacktrackNode();
         System.out.println("sortChildren(s): " + (double) (System.nanoTime() - time) / 1000 /
                 1000 / 1000);
@@ -216,7 +224,7 @@ public class CodeTree implements Serializable {
         System.out.println("Tree size: " + root.size());
     }
 
-    private void inclusionCheck(GraphCode impl, List<Graph> G) {
+    private void inclusionCheck(GraphCode impl, List<Graph> G, String dataset) {
         for (Graph g : G) {
             if (g.id % 100000 == 0) {
             } else if (g.id % (G.size() / 2) == 0) {
@@ -224,7 +232,7 @@ public class CodeTree implements Serializable {
             } else if (g.id % (G.size() / 10) == 0) {
                 System.out.print(".");
             }
-            root.addIDtoTree(g, impl);
+            root.addIDtoTree(g, impl, dataset);
             root.initTraverseNecessity();
         }
     }
