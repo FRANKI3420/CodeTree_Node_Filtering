@@ -56,9 +56,9 @@ public class CodeTree implements Serializable {
                 break;
 
             case "ppigo":
-                rand = new Random(4);
+                // rand = new Random(4);
                 delta = 5;
-                // delta = 4;
+                delta = 4;
                 loop = 100;
                 break;
         }
