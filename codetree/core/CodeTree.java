@@ -52,12 +52,13 @@ public class CodeTree implements Serializable {
             case "pcms":
                 // delta = 10;
                 delta = 5;
-                loop = 10;
+                // loop = 10;
                 break;
 
             case "ppigo":
+                rand = new Random(4);
                 delta = 5;
-                delta = 4;
+                // delta = 4;
                 loop = 100;
                 break;
         }
@@ -97,8 +98,9 @@ public class CodeTree implements Serializable {
             root.addPath(c, -1, false, 0);
         }
         codelist = null;
+        root.adjustEfrag();
 
-        root.sortChildren();
+        // root.sortChildren();
 
         index.write(dataset + "," + delta + ","
                 + String.format("%.6f", (double) (System.nanoTime() - start) / 1000 / 1000 / 1000) + ",");
@@ -118,7 +120,6 @@ public class CodeTree implements Serializable {
         long time = System.nanoTime();
         List<Graph> leafGraphs = new ArrayList<>();
         root.getLeafGraph(leafGraphs);
-
         searchByLeafGraph(impl, leafGraphs);
         root.removeTree();
         root.init_removeNode();

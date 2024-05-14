@@ -23,4 +23,7 @@ public interface GraphCode {
         abstract List<Pair<CodeFragment, SearchInfo>> enumerateFollowableFragments(Graph g, SearchInfo info,
                         HashSet<Byte> adjLabels, BitSet childEdgeFrag);
 
+        abstract List<Pair<CodeFragment, SearchInfo>> enumerateFollowableFragments_adj2(Graph g, SearchInfo info0,
+                        HashSet<Byte> childrenVlabel, BitSet childEdgeFrag, int index);
+
 }

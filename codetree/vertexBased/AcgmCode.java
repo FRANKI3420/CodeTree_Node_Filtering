@@ -305,4 +305,65 @@ public class AcgmCode
         return code;
     }
 
+    static long contain_search_time = 0;
+
+    @Override
+    public List<Pair<CodeFragment, SearchInfo>> enumerateFollowableFragments_adj2(Graph g, SearchInfo info0,
+            HashSet<Byte> childrenVlabel, BitSet childEdgeFrag, int index) {
+        ArrayList<Pair<CodeFragment, SearchInfo>> frags = new ArrayList<>();
+
+        AcgmSearchInfo info = (AcgmSearchInfo) info0;
+
+        final int depth = info.vertexIDs.length;
+
+        byte[] eLabels = new byte[depth];
+
+        openBitSet.clear();
+        // openBitSet.or(g.edgeBitset.get(info.vertexIDs[index]));
+        // if (childEdgeFrag.cardinality() > 1) {
+        // System.out.println(childEdgeFrag.toString());
+        // }
+        if (g.id == 19) {
+            System.out.println((double) contain_search_time / 1000 / 1000 / 1000 + "s");
+        }
+        int count = 0;
+        for (int v = childEdgeFrag.nextSetBit(0); v != -1; v = childEdgeFrag.nextSetBit(++v)) {
+            int u = info.vertexIDs[v];
+            if (count == 0) {
+                openBitSet.or(g.edgeBitset.get(u));
+            } else {
+                openBitSet.and(g.edgeBitset.get(u));
+            }
+            count++;
+        }
+
+        for (int v = openBitSet.nextSetBit(0); v != -1; v = openBitSet.nextSetBit(++v)) {
+            // long time = System.nanoTime();
+
+            if (!childrenVlabel.contains(g.vertices[v])) {
+                // contain_search_time += System.nanoTime() - time;
+                continue;
+            }
+            // contain_search_time += System.nanoTime() - time;
+
+            // long time = System.nanoTime();
+
+            if (contain(info.vertexIDs, v)) {
+                // contain_search_time += System.nanoTime() - time;
+                continue;
+            }
+            // contain_search_time += System.nanoTime() - time;
+
+            for (int i = 0; i < depth; ++i) {
+                final int u = info.vertexIDs[i];
+                eLabels[i] = g.edges[u][v];
+            }
+
+            frags.add(new Pair<CodeFragment, SearchInfo>(
+                    new AcgmCodeFragment(g.vertices[v], eLabels), new AcgmSearchInfo(info, g, v, 0)));
+        }
+
+        return frags;
+    }
+
 }

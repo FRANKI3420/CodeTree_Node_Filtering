@@ -26,6 +26,7 @@ public class IndexNode implements Serializable {
     protected LinkedHashMap<Integer, BitSet> labelFiltering;
     protected BitSet childEdgeFragAnd;
     protected BitSet childEdgeFragOr;
+    protected int adjust;
 
     static BitSet In = new BitSet();
     static BitSet Can = new BitSet();
@@ -114,7 +115,7 @@ public class IndexNode implements Serializable {
             childEdgeFragAnd.flip(i);
         }
         childEdgeFragOr = new BitSet();
-
+        adjust = 0;
     }
 
     int size() {
@@ -155,6 +156,36 @@ public class IndexNode implements Serializable {
         }
         for (IndexNode m : children) {
             m.addInfo();
+        }
+    }
+
+    void adjustEfrag() {
+        for (IndexNode m : children) {
+            if (m.depth <= 2) {
+                m.adjust = 0;
+            } else {
+                int[] histgram = new int[depth];
+                for (IndexNode n : children) {
+                    for (int i = 0; i < n.frag.getelabel().length; i++) {
+                        if (n.frag.getelabel()[i] == 1) {
+                            histgram[i]++;
+                        }
+                    }
+                }
+                int max = 0;
+                int max_index = 0;
+                for (int i = 0; i < depth; i++) {
+                    if (max < histgram[i]) {
+                        max = histgram[i];
+                        max_index = i;
+                    }
+                }
+                for (IndexNode n : children) {
+                    n.frag.getelabel()[max_index] = 1;
+                }
+                this.adjust = max_index;
+            }
+            m.adjustEfrag();
         }
     }
 
@@ -228,8 +259,8 @@ public class IndexNode implements Serializable {
             }
 
         } else {
-            if (graphIndex != -1)
-                matchGraphIndicesBitSet.set(graphIndex, true);
+            // if (graphIndex != -1)
+            // matchGraphIndicesBitSet.set(graphIndex, true);
 
             if (height <= 0)
                 return;
@@ -480,7 +511,10 @@ public class IndexNode implements Serializable {
             return;
         }
 
-        List<Pair<CodeFragment, SearchInfo>> nextFrags = impl.enumerateFollowableFragments(q, info, adjLabels);
+        // List<Pair<CodeFragment, SearchInfo>> nextFrags =
+        // impl.enumerateFollowableFragments(q, info, adjLabels);
+        List<Pair<CodeFragment, SearchInfo>> nextFrags = impl.enumerateFollowableFragments_adj2(q, info, adjLabels,
+                childEdgeFragAnd, adjust);
 
         for (IndexNode m : children) {
             if (!m.traverseNecessity)
@@ -549,12 +583,16 @@ public class IndexNode implements Serializable {
             return;
         }
 
-        List<Pair<CodeFragment, SearchInfo>> nextFrags;
-        if (childEdgeFragAnd.cardinality() > 0) {
-            nextFrags = impl.enumerateFollowableFragments(g, info, adjLabels, childEdgeFragAnd);
-        } else {
-            nextFrags = impl.enumerateFollowableFragments(g, info, adjLabels, childEdgeFragOr);
-        }
+        // List<Pair<CodeFragment, SearchInfo>> nextFrags;
+        // if (childEdgeFragAnd.cardinality() > 0) {
+        // nextFrags = impl.enumerateFollowableFragments(g, info, adjLabels,
+        // childEdgeFragAnd);
+        // } else {
+        // nextFrags = impl.enumerateFollowableFragments(g, info, adjLabels,
+        // childEdgeFragOr);
+        // }
+        List<Pair<CodeFragment, SearchInfo>> nextFrags = impl.enumerateFollowableFragments_adj2(g, info, adjLabels,
+                childEdgeFragAnd, adjust);
 
         for (IndexNode m : children) {
             if (!m.traverseNecessity)
