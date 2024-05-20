@@ -127,8 +127,8 @@ class Main {
                             allfind.write(String.format("%.2f", (double) fileSize / 1024 / 1024) + "\n");
 
                             allfind.flush();
-                            if (true)
-                                continue;
+                            // if (true)
+                            // continue;
 
                             HashMap<Integer, ArrayList<String>> gMaps = makeGmaps(gfuFilename);
 

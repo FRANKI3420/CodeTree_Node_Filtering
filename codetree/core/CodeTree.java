@@ -30,7 +30,7 @@ public class CodeTree implements Serializable {
 
         switch (dataset) {
             case "AIDS":
-                delta = 5;
+                delta = 10;
                 break;
 
             case "COLLAB":
@@ -56,49 +56,51 @@ public class CodeTree implements Serializable {
                 break;
 
             case "ppigo":
-                // rand = new Random(4);
+                rand = new Random();
                 delta = 5;
-                delta = 4;
+                // delta = 4;
+                // delta = 6;
                 loop = 100;
                 break;
         }
 
-        // Path p = Paths.get("patten.gfu");
-        // try (BufferedWriter p_bw = Files.newBufferedWriter(p)) {
+        Path p = Paths.get("patten.gfu");
+        try (BufferedWriter p_bw = Files.newBufferedWriter(p)) {
+            for (Graph g : G) {
+                for (int l = 0; l < loop; l++) {
+                    int start_vertice = rand.nextInt(g.order);
+                    HashSet<Integer> targetVertices = g.getTargetVertices(delta, start_vertice);
+                    Graph inducedGraph = g.generateInducedGraph(targetVertices);
+                    inducedGraph.writeGraph2Gfu(p_bw);
+                    start_vertice = rand.nextInt(inducedGraph.order);
+                    code = impl.computeCode(inducedGraph, start_vertice, delta);
+                    // print(code);
+                    root.addPath(code, g.id, false, 0);
+                }
+            }
+        } catch (IOException e) {
+            System.out.println(e);
+            System.exit(0);
+        }
+
         // for (Graph g : G) {
         // for (int l = 0; l < loop; l++) {
         // int start_vertice = rand.nextInt(g.order);
         // HashSet<Integer> targetVertices = g.getTargetVertices(delta, start_vertice);
         // Graph inducedGraph = g.generateInducedGraph(targetVertices);
-        // inducedGraph.writeGraph2Gfu(p_bw);
-        // code = impl.computeCode(inducedGraph, 0, delta);
-        // print(code);
+        // start_vertice = rand.nextInt(inducedGraph.order);
+        // code = impl.computeCanonicalCode(inducedGraph, start_vertice, delta);
+        // // print(code);
         // root.addPath(code, g.id, false, 0);
         // }
         // }
-        // } catch (IOException e) {
-        // System.out.println(e);
-        // System.exit(0);
-        // }
-
-        for (Graph g : G) {
-            for (int l = 0; l < loop; l++) {
-                int start_vertice = rand.nextInt(g.order);
-                HashSet<Integer> targetVertices = g.getTargetVertices(delta, start_vertice);
-                Graph inducedGraph = g.generateInducedGraph(targetVertices);
-                start_vertice = rand.nextInt(inducedGraph.order);
-                code = impl.computeCanonicalCode(inducedGraph, start_vertice, delta);
-                // print(code);
-                root.addPath(code, g.id, false, 0);
-            }
-        }
 
         List<ArrayList<CodeFragment>> codelist = impl.computeCanonicalCode(Graph.numOflabels(G));
         for (ArrayList<CodeFragment> c : codelist) {
             root.addPath(c, -1, false, 0);
         }
         codelist = null;
-        root.adjustEfrag();
+        // root.adjustEfrag();
 
         // root.sortChildren();
 

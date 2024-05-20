@@ -249,7 +249,7 @@ public class AcgmCode
         ArrayList<CodeFragment> code = new ArrayList<>(limDepth);
         ArrayList<AcgmSearchInfo> infoList1 = new ArrayList<>();
 
-        start = g.minDegreeVertices();
+        // start = g.minDegreeVertices();
 
         code.add(new AcgmCodeFragment(g.vertices[start], 0));
 

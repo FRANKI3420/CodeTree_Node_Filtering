@@ -27,6 +27,7 @@ public class IndexNode implements Serializable {
     protected BitSet childEdgeFragAnd;
     protected BitSet childEdgeFragOr;
     protected int adjust;
+    protected Map<Integer, Integer> path_count;
 
     static BitSet In = new BitSet();
     static BitSet Can = new BitSet();
@@ -89,6 +90,7 @@ public class IndexNode implements Serializable {
     static ArrayList<IndexNode> removeNode = new ArrayList<>();
     static int traverse_cou = 0;
     static Set<IndexNode> initTraverseNecessity = new HashSet<>();
+    static int sikiiti = 10;
 
     IndexNode(IndexNode parent, CodeFragment frag, int dep, boolean supergraphSearchNode) {
         this.parent = parent;
@@ -108,6 +110,7 @@ public class IndexNode implements Serializable {
         } else {
             matchGraphIndicesBitSet = new BitSet();
             nodeID = nodeIDcount++;
+            path_count = new HashMap<>();
         }
 
         childEdgeFragAnd = new BitSet(dep);
@@ -330,6 +333,8 @@ public class IndexNode implements Serializable {
             } else {
                 Can.andNot(In);
             }
+            if (sikiiti > 0)// ここで、閾値>2の場合、supergraphのノードも対象になるので誤検出・注意!!
+                filtering_by_count(true);
 
         } else {
             for (Pair<IndexNode, SearchInfo> info : infoList) {
@@ -337,6 +342,8 @@ public class IndexNode implements Serializable {
             }
             a_in_count = 0;
             initTraverseNecessity();
+            if (sikiiti > 0)
+                filtering_by_count(false);
         }
 
         infoList = null;
@@ -402,6 +409,24 @@ public class IndexNode implements Serializable {
         return result;
     }
 
+    private void filtering_by_count(boolean deltaBigger) {
+        for (IndexNode m : this.children) {
+            if (m.q_traverse_num < 1)
+                continue;
+            for (int id = Can.nextSetBit(0); id != -1; id = Can.nextSetBit(++id)) {
+                if (m.matchGraphIndicesBitSet.get(id) && m.path_count.get(id) < m.q_traverse_num) {
+                    Can.set(id, false);
+                }
+            }
+            // if (m.depth == sikiiti || (deltaBigger && m.depth == 2))
+            // continue;
+            if (deltaBigger && m.depth == 2)
+                continue;
+            m.filtering_by_count(deltaBigger);
+        }
+
+    }
+
     void find_labelFiltering(List<Graph> G, List<IndexNode> trIndexNodes) {
         for (IndexNode m : trIndexNodes) {
             int mapsize = m.labelFiltering.size();
@@ -458,9 +483,13 @@ public class IndexNode implements Serializable {
             return;
         }
 
-        if (children.size() == 0 || backtrackJudge(q.order)) {
-            return;
-        }
+        // if (children.size() == 0 || (depth > sikiiti && backtrackJudge(q.order))) {
+        // return;
+        // }
+
+        // if (children.size() == 0 || backtrackJudge(q.order)) {
+        // return;
+        // }
 
         if (!In.isEmpty() && superFrag) {
             U.xor(In);
@@ -504,12 +533,18 @@ public class IndexNode implements Serializable {
 
         Can.and(matchGraphIndicesBitSet);
 
-        if (backtrackNode ||
-                backtrackJudge(q.order)) {
-            traverseNecessity = false;
-            initTraverseNecessity.add(this);
-            return;
-        }
+        // if (backtrackNode ||
+        // backtrackJudge(q.order)) {
+        // traverseNecessity = false;
+        // initTraverseNecessity.add(this);
+        // return;
+        // }
+
+        // if (depth > sikiiti && (backtrackNode || backtrackJudge(q.order))) {
+        // traverseNecessity = false;
+        // initTraverseNecessity.add(this);
+        // return;
+        // }
 
         // List<Pair<CodeFragment, SearchInfo>> nextFrags =
         // impl.enumerateFollowableFragments(q, info, adjLabels);
@@ -575,13 +610,29 @@ public class IndexNode implements Serializable {
             labelFiltering.get(g.id).set(info.getVertexIDs()[0]);
         }
 
+        // if (depth <= sikiiti) {
+        if (path_count.get(g.id) == null) {
+            path_count.put(g.id, 1);
+        } else {
+            int cou = path_count.get(g.id);
+            path_count.put(g.id, ++cou);
+        }
+        // }
+
         matchGraphIndicesBitSet.set(g.id, true);
 
-        if (children.size() == 0 || backtrackJudge(g.order, g.id)) {
-            traverseNecessity = false;
-            initTraverseNecessity.add(this);
-            return;
-        }
+        // if (children.size() == 0 || (depth > sikiiti && backtrackJudge(g.order,
+        // g.id))) {
+        // traverseNecessity = false;
+        // initTraverseNecessity.add(this);
+        // return;
+        // }
+
+        // if (children.size() == 0 || backtrackJudge(g.order, g.id)) {
+        // traverseNecessity = false;
+        // initTraverseNecessity.add(this);
+        // return;
+        // }
 
         // List<Pair<CodeFragment, SearchInfo>> nextFrags;
         // if (childEdgeFragAnd.cardinality() > 0) {
