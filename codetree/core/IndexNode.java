@@ -26,6 +26,7 @@ public class IndexNode implements Serializable {
     protected LinkedHashMap<Integer, BitSet> labelFiltering;
     protected BitSet childEdgeFragAnd;
     protected BitSet childEdgeFragOr;
+    protected Byte nocontain;
 
     static BitSet In = new BitSet();
     static BitSet Can = new BitSet();
@@ -114,6 +115,7 @@ public class IndexNode implements Serializable {
             childEdgeFragAnd.flip(i);
         }
         childEdgeFragOr = new BitSet();
+        nocontain = 0;
 
     }
 
@@ -584,7 +586,7 @@ public class IndexNode implements Serializable {
 
         matchGraphIndicesBitSet.set(g.id, true);
 
-        if (children.size() == 0 || backtrackJudge(g.order, g.id)) {
+        if (children.size() == 0 || backtrackJudge(impl, g, g.order, g.id)) {
             traverseNecessity = false;
             initTraverseNecessity.add(this);
             return;
@@ -610,17 +612,83 @@ public class IndexNode implements Serializable {
         }
     }
 
-    private boolean backtrackJudge(int order, int id) {
+    static List<IndexNode> nocontainNode = new ArrayList<>();
+
+    void initNocontainNode() {
+        for (IndexNode m : nocontainNode) {
+            m.nocontain = 0;
+        }
+        nocontainNode.clear();
+    }
+
+    private boolean backtrackJudge(GraphCode impl, Graph g_i, int order, int id) {
+        if (children.size() == 0 && nocontain == 0) {// 葉節点 and 未訪問
+            Graph g = generateGraph(getCode(), nodeID);// this node graph
+            if (verification_CodeTree(impl, g_i, g)) {
+                nocontain = 1;
+            } else {
+                nocontain = 2;// この節点は絶対に辿れない
+                nocontainNode.add(this);
+            }
+        }
         for (IndexNode m : children) {
-            if (!m.matchGraphIndicesBitSet.get(id)) {
+            if (!m.matchGraphIndicesBitSet.get(id) && nocontain != 2) {
                 return false;
             }
             if (m.depth <= order) {
-                if (!m.backtrackJudge(order, id))
+                if (!m.backtrackJudge(impl, g_i, order, id))
                     return false;
             }
         }
         return true;
+    }
+    // private boolean backtrackJudge(int order, int id) {
+    // for (IndexNode m : children) {
+    // if (!m.matchGraphIndicesBitSet.get(id)) {
+    // return false;
+    // }
+    // if (m.depth <= order) {
+    // if (!m.backtrackJudge(order, id))
+    // return false;
+    // }
+    // }
+    // return true;
+    // }
+
+    private boolean verification_CodeTree(GraphCode impl, Graph g_i, Graph g) {
+        CodeTree qTree = new CodeTree(impl, g, 10);
+
+        List<Pair<IndexNode, SearchInfo>> infoList = impl.beginSearch(g_i, qTree.root);
+
+        for (Pair<IndexNode, SearchInfo> info : infoList) {
+            if (info.left.verification_search(g_i, info.right, impl)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean verification_search(Graph g, SearchInfo info, GraphCode impl) {
+
+        if (children.size() == 0)
+            return true;
+
+        List<Pair<CodeFragment, SearchInfo>> nextFrags = impl.enumerateFollowableFragments(g, info,
+                adjLabels,
+                childEdgeFragAnd);
+
+        for (IndexNode m : children) {
+
+            for (Pair<CodeFragment, SearchInfo> frag : nextFrags) {
+
+                if (frag.left.contains(m.frag)) {
+                    if (m.verification_search(g, frag.right, impl))
+                        return true;
+                }
+            }
+        }
+        return false;
+
     }
 
     void getLeafGraph(List<Graph> leafGraphs) {

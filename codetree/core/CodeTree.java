@@ -230,6 +230,7 @@ public class CodeTree implements Serializable {
             }
             root.addIDtoTree(g, impl);
             root.initTraverseNecessity();
+            root.initNocontainNode();
         }
     }
 
@@ -246,6 +247,21 @@ public class CodeTree implements Serializable {
             root.pruningEquivalentNodes(g, impl, g.id, idList, removeIDList);
 
         }
+    }
+
+    public CodeTree(GraphCode impl, Graph q, int b) {
+        this.impl = impl;
+        this.root = new IndexNode(null, null, 0, true);
+
+        // System.out.print("Indexing");
+
+        List<CodeFragment> code = impl.computeCanonicalCode(q, b);// 準正準コードを得る
+        root.addPath(code, 0, true, 0);
+
+        root.addInfo();
+
+        // System.out.println();
+        // System.out.println("Tree size: " + root.size());
     }
 
     public List<Integer> supergraphSearch(Graph query) {

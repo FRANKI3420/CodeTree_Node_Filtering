@@ -46,7 +46,7 @@ class Main {
                 allfind.write(
                         "dataset,depth,addPathtoTree(s),Tree_size,Tree_size(new),removeTime(s),addIDtoTree(s),Build_tree(s),memory cost\n");
 
-                for (datasetID = -1; datasetID <= 5; datasetID++) {
+                for (datasetID = 0; datasetID <= 5; datasetID++) {
                     br_whole.write(
                             "dataset,query_set,A/C,(G-C)/(G-A),SP,filtering_time(ms),verification_time(ms),query_time(ms),search_time(ms),node_fil_time(ms),|In(Q)|,|A(Q)|,|Can(Q)|,|F(Q)|,Num deleted Vertices,total deleted edges Num,nonfail,verify num,q_trav_num,1ms per filtering graph,ave_% of vertices were removed\n");
 
@@ -133,8 +133,8 @@ class Main {
                             allfind.write(String.format("%.2f", (double) fileSize / 1024 / 1024) + "\n");
 
                             allfind.flush();
-                            // if (true)
-                            // continue;
+                            if (true)
+                                continue;
 
                             HashMap<Integer, ArrayList<String>> gMaps = makeGmaps(gfuFilename);
 
